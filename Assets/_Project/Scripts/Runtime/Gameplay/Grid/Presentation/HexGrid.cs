@@ -1,35 +1,72 @@
 using UnityEngine;
+using System.Collections.Generic;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Mappers;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
-    public class HexGrid : MonoBehaviour {
+    public class HexGrid {
+        private HexGridConfig _config;
+        private Dictionary<HexCoordinates, HexCell> _cells;
+        private IHexGridMapper _mapper;
+        private Transform _transform;
+        private bool _isInitialized;
 
-        [SerializeField] private int _width = 6;
-        [SerializeField] private int _height = 6;
+        public void Initialize(HexGridConfig config, IHexGridMapper mapper, Transform parentTransform) {
+            if (_isInitialized) {
+                Debug.LogWarning("HexGrid is already initialized!");
+                return;
+            }
 
-        [SerializeField] private HexCell _cellPrefab;
+            if (config == null || !config.IsValid()) {
+                Debug.LogError("Invalid HexGridConfig provided!");
+                return;
+            }
 
-        private HexCell[] _cells;
+            if (mapper == null) {
+                Debug.LogError("HexGridMapper is null!");
+                return;
+            }
 
-        void Awake () {
-            _cells = new HexCell[_height * _width];
+            if (parentTransform == null) {
+                Debug.LogError("Parent Transform is null!");
+                return;
+            }
 
-            for (int z = 0, i = 0; z < _height; z++) {
-                for (int x = 0; x < _width; x++) {
-                    CreateCell(x, z, i++);
+            _config = config;
+            _mapper = mapper;
+            _transform = parentTransform;
+            _cells = new Dictionary<HexCoordinates, HexCell>();
+
+            CreateAllCells();
+            _isInitialized = true;
+        }
+
+        private void CreateAllCells() {
+            for (int z = 0; z < _config.Height; z++) {
+                for (int x = 0; x < _config.Width; x++) {
+                    HexCoordinates coordinates = _mapper.GetCoordinateFromOffset(x, z);
+                    Vector3 position = _mapper.GetWorldPositionFromOffset(x, z);
+                    
+                    HexCell cell = CreateCell(coordinates, position);
+                    if (cell != null) {
+                        _cells[coordinates] = cell;
+                    }
                 }
             }
         }
-        
-        void CreateCell (int x, int z, int i) {
-            Vector3 position;
-            position.x = (x + z * 0.5f - z / 2) * (HexMetrics.InnerRadius * 2f);
-		    position.y = 0f;
-		    position.z = z * (HexMetrics.OuterRadius * 1.5f);
 
-            HexCell cell = _cells[i] = Instantiate(_cellPrefab, position, Quaternion.identity);
-            cell.transform.SetParent(transform, false);
+        private HexCell CreateCell(HexCoordinates coordinates, Vector3 position) {
+            if (_config.CellPrefab == null) {
+                Debug.LogError("HexCell prefab is not assigned!");
+                return null;
+            }
+
+            HexCell cell = Object.Instantiate(_config.CellPrefab, _transform);
             cell.transform.localPosition = position;
+            cell.SetCoordinates(coordinates);
+            
+            return cell;
         }
     }
 }

@@ -3,6 +3,7 @@ using VContainer.Unity;
 using _Project.Scripts.Runtime.Bootstrap.Units;
 using _Project.Scripts.Runtime.Utilities.Loading;
 using _Project.Scripts.Runtime.Utilities.Logging;
+using UnityEngine.SceneManagement;
 
 namespace _Project.Scripts.Runtime.Bootstrap.DI
 {
@@ -20,6 +21,8 @@ namespace _Project.Scripts.Runtime.Bootstrap.DI
             try
             {
                 await _loadingService.BeginLoading(new ApplicationConfigurationLoadUnit());
+
+                SceneManager.LoadScene("1.Gameplay");
             }
             catch (Exception e)
             {

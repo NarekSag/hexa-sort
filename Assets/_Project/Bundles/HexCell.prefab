@@ -11,7 +11,7 @@ GameObject:
   - component: {fileID: 684012554196275829}
   - component: {fileID: 195489562003199398}
   - component: {fileID: 8446137862882563082}
-  - component: {fileID: 4013344796844684001}
+  - component: {fileID: 4752898603595873221}
   - component: {fileID: 93956349096341290}
   m_Layer: 0
   m_Name: HexCell
@@ -91,8 +91,8 @@ MeshRenderer:
   m_SortingLayer: 0
   m_SortingOrder: 0
   m_AdditionalVertexStreams: {fileID: 0}
---- !u!64 &4013344796844684001
-MeshCollider:
+--- !u!65 &4752898603595873221
+BoxCollider:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
@@ -109,10 +109,9 @@ MeshCollider:
   m_IsTrigger: 0
   m_ProvidesContacts: 0
   m_Enabled: 1
-  serializedVersion: 5
-  m_Convex: 0
-  m_CookingOptions: 30
-  m_Mesh: {fileID: 2534964839176971238, guid: 81bd6a79d3dd00a4c99bbabab559762b, type: 3}
+  serializedVersion: 3
+  m_Size: {x: 1.7320509, y: 0.20000002, z: 1.9549896}
+  m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &93956349096341290
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -125,3 +124,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: e16e93f263a553c4ea0c29b82281bd37, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Grid.Presentation.HexCell
+  _coordinates:
+    x: 0
+    z: 0

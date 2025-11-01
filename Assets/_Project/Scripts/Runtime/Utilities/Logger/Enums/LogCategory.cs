@@ -5,6 +5,7 @@ namespace _Project.Scripts.Runtime.Utilities.Logging
         None,
         Bootstrap,
         Loading,
+        Gameplay,
         Grid,
     }
 }

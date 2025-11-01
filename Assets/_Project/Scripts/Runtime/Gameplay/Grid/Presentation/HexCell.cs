@@ -1,8 +1,13 @@
 using UnityEngine;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexCell : MonoBehaviour {
-        // Empty for now - cell data will be added later
+        [SerializeField] private HexCoordinates _coordinates;
+
+        public void SetCoordinates(HexCoordinates coordinates) {
+            _coordinates = coordinates;
+        }
     }
 }
 
