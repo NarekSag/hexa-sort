@@ -1,0 +1,48 @@
+using UnityEngine;
+using System.Collections.Generic;
+using Presentation = _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
+using _Project.Scripts.Runtime.Gameplay.Cell;
+
+namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
+    public class StackPositionService {
+        private readonly StackColliderService _colliderService;
+
+        public StackPositionService(StackColliderService colliderService) {
+            _colliderService = colliderService;
+        }
+
+        public void RepositionAllCells(IList<ICell> cells, int? excludeFromIndex = null) {
+            if (cells == null) {
+                return;
+            }
+
+            for (int i = 0; i < cells.Count; i++) {
+                if (cells[i] != null) {
+                    // Skip repositioning if this index should be excluded (being animated)
+                    if (excludeFromIndex.HasValue && i >= excludeFromIndex.Value) {
+                        continue;
+                    }
+                    
+                    float yOffset = _colliderService.CalculateYOffset(i);
+                    cells[i].LocalPosition = new Vector3(0f, yOffset, 0f);
+                }
+            }
+        }
+
+        // Legacy method - kept for backward compatibility during transition
+        public void RepositionAllHexagons(List<HexCell> hexagons, int? excludeFromIndex = null) {
+            if (hexagons == null) {
+                return;
+            }
+
+            var cells = new List<ICell>(hexagons.Count);
+            foreach (var hex in hexagons) {
+                if (hex != null) {
+                    cells.Add(hex);
+                }
+            }
+            
+            RepositionAllCells(cells, excludeFromIndex);
+        }
+    }
+}

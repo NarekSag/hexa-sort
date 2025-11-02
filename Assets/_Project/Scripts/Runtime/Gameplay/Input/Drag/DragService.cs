@@ -3,6 +3,8 @@ using VContainer;
 using _Project.Scripts.Runtime.Gameplay.Input.PositionCalculation;
 using _Project.Scripts.Runtime.Gameplay.Input.Raycast;
 using _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
+using _Project.Scripts.Runtime.Gameplay.Stack;
+
 namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
     public class DragService : MonoBehaviour {
         [Inject] private IInputService _inputService;

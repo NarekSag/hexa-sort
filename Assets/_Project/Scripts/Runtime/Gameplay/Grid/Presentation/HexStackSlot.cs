@@ -3,7 +3,8 @@ using System.Collections.Generic;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
 using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using _Project.Scripts.Runtime.Gameplay.Input.Drag;
-using VContainer;
+using _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers;
+using _Project.Scripts.Runtime.Gameplay.Stack;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexStackSlot : MonoBehaviour, IPlacementTarget {
@@ -11,80 +12,48 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
         private HexGrid _grid;
         private IHexagonAnimationService _animationService;
         private HexCoordinates _coordinates;
+        private GridController _gridController;
 
-        public void Initialize(HexCoordinates coordinates, HexGrid grid, IHexagonAnimationService animationService) {
+        /// <summary>
+        /// Gets a read-only collection of stacks in this slot.
+        /// </summary>
+        public IReadOnlyList<HexStack> Stacks => _hexStacks.AsReadOnly();
+
+        public void Initialize(HexCoordinates coordinates, HexGrid grid, IHexagonAnimationService animationService, GridController gridController) {
             _coordinates = coordinates;
             _grid = grid;
             _animationService = animationService;
+            _gridController = gridController;
         }
 
         public void SetHexStack(HexStack hexStack) {
+            SetHexStack(hexStack, checkNeighbors: true);
+        }
+
+        /// <summary>
+        /// Sets a hex stack in this slot.
+        /// </summary>
+        /// <param name="hexStack">The stack to add.</param>
+        /// <param name="checkNeighbors">Whether to check neighbors and merge after adding.</param>
+        internal void SetHexStack(HexStack hexStack, bool checkNeighbors) {
             if (hexStack == null) return;
             
             if (!_hexStacks.Contains(hexStack)) {
                 _hexStacks.Add(hexStack);
                 hexStack.transform.SetParent(transform);
                 
-                // Check neighbors and merge stacks
-                CheckNeighborsAndMerge();
-            }
-        }
-
-        private void CheckNeighborsAndMerge() {
-            if (_grid == null) return;
-
-            HexCoordinates[] neighbors = _coordinates.GetNeighbors();
-            foreach (HexCoordinates neighborCoords in neighbors) {
-                HexStackSlot neighborSlot = _grid.GetSlot(neighborCoords);
-                if (neighborSlot != null && !neighborSlot.IsEmpty()) {
-                    MergeWithSlot(neighborSlot);
+                // Check neighbors and merge stacks via grid controller
+                if (checkNeighbors && _gridController != null) {
+                    _gridController.CheckNeighborsAndMerge(_coordinates);
                 }
             }
         }
 
-        public void MergeWithSlot(HexStackSlot otherSlot) {
-            if (otherSlot == null || otherSlot == this) return;
-            if (otherSlot.IsEmpty()) return;
-
-            // Get all stacks from the neighbor slot
-            var stacksToMerge = new List<HexStack>(otherSlot._hexStacks);
-            
-            // Move all hexagons from neighbor's stacks to this slot's first stack
-            if (_hexStacks.Count > 0) {
-                HexStack targetStack = _hexStacks[0];
-                
-                foreach (HexStack sourceStack in stacksToMerge) {
-                    if (sourceStack != null) {
-                        // Pass animation service if available
-                        if (_animationService != null) {
-                            targetStack.AddHexCellsFrom(sourceStack, animate: true, _animationService);
-                        } else {
-                            targetStack.AddHexCellsFrom(sourceStack, animate: false);
-                        }
-                        
-                        // Destroy the empty stack (with delay if animating)
-                        if (sourceStack.Hexagons.Count == 0) {
-                            if (_animationService != null) {
-                                // Delay destruction to allow animation to complete
-                                Destroy(sourceStack.gameObject, 0.3f);
-                            } else {
-                                Destroy(sourceStack.gameObject);
-                            }
-                        }
-                    }
-                }
-            } else {
-                // If this slot is empty, move the entire stack
-                foreach (HexStack stack in stacksToMerge) {
-                    if (stack != null) {
-                        _hexStacks.Add(stack);
-                        stack.transform.SetParent(transform);
-                    }
-                }
-            }
-
-            // Clear the neighbor slot
-            otherSlot._hexStacks.Clear();
+        /// <summary>
+        /// Clears all stacks from this slot.
+        /// </summary>
+        public void ClearStacks() {
+            _hexStacks.Clear();
         }
 
         public bool IsEmpty() {

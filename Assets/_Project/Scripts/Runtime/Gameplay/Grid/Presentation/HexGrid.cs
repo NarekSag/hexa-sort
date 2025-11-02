@@ -4,6 +4,7 @@ using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Mappers;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
 using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
+using _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexGrid {
@@ -12,8 +13,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
         private IHexGridMapper _mapper;
         private Transform _transform;
         private bool _isInitialized;
+        private GridController _gridController;
 
-        public void Initialize(HexGridConfig config, IHexGridMapper mapper, Transform parentTransform, IHexagonAnimationService animationService) {
+        public void Initialize(
+            HexGridConfig config, 
+            IHexGridMapper mapper, 
+            Transform parentTransform, 
+            IHexagonAnimationService animationService,
+            GridController gridController) {
             if (_isInitialized) {
                 Debug.LogWarning("HexGrid is already initialized!");
                 return;
@@ -38,6 +45,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             _mapper = mapper;
             _transform = parentTransform;
             _slots = new Dictionary<HexCoordinates, HexStackSlot>();
+            _gridController = gridController;
 
             CreateAllSlots(animationService);
             _isInitialized = true;
@@ -65,13 +73,17 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
 
             HexStackSlot slot = Object.Instantiate(_config.SlotPrefab, _transform);
             slot.transform.localPosition = position;
-            slot.Initialize(coordinates, this, animationService);
+            slot.Initialize(coordinates, this, animationService, _gridController);
             return slot;
         }
 
         public HexStackSlot GetSlot(HexCoordinates coordinates) {
             _slots.TryGetValue(coordinates, out HexStackSlot slot);
             return slot;
+        }
+
+        public GridController GetGridController() {
+            return _gridController;
         }
     }
 }
