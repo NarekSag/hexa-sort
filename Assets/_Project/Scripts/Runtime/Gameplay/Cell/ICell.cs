@@ -15,6 +15,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Cell {
         /// Gets or sets the local position of the cell within its parent stack.
         /// </summary>
         Vector3 LocalPosition { get; set; }
+        
+        /// <summary>
+        /// Gets the color type of this cell.
+        /// </summary>
+        ColorType ColorType { get; }
     }
 }
 

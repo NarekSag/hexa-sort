@@ -5,6 +5,7 @@ using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
 using VContainer;
 using _Project.Scripts.Runtime.Gameplay.Stack.Services;
 using _Project.Scripts.Runtime.Gameplay.Stack.Controllers;
+using _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexGridFactory 
@@ -35,11 +36,24 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             StackPositionService positionService = new StackPositionService(colliderService);
             StackMergeService mergeService = new StackMergeService(colliderService, positionService);
             
+            // Create stack state analyzer and sorting service
+            StackStateAnalyzer stateAnalyzer = new StackStateAnalyzer();
+            StackSortingService sortingService = new StackSortingService(
+                stateAnalyzer, 
+                mergeService, 
+                positionService, 
+                colliderService);
+            
             // Create controllers - StackController first
             StackController stackController = new StackController(mergeService, positionService, _animationService);
             
-            // GridController needs the grid, but we'll create it and then set it
-            Controllers.GridController gridController = new Controllers.GridController(grid, mapper, stackController);
+            // GridController needs the grid, sorting service, and animation service
+            Controllers.GridController gridController = new Controllers.GridController(
+                grid, 
+                mapper, 
+                stackController,
+                sortingService,
+                _animationService);
             
             grid.Initialize(config, mapper, gridObject.transform, _animationService, gridController);
 
