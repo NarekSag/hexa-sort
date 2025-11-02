@@ -17,7 +17,7 @@ namespace _Project.Scripts.Runtime.Gameplay.DI
             _hexGridConfig = hexGridConfig;
         }
 
-        public async void Start()
+        public void Start()
         {
             try
             {

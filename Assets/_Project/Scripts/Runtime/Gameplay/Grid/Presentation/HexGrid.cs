@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Mappers;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
+using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexGrid {
@@ -12,7 +13,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
         private Transform _transform;
         private bool _isInitialized;
 
-        public void Initialize(HexGridConfig config, IHexGridMapper mapper, Transform parentTransform) {
+        public void Initialize(HexGridConfig config, IHexGridMapper mapper, Transform parentTransform, IHexagonAnimationService animationService) {
             if (_isInitialized) {
                 Debug.LogWarning("HexGrid is already initialized!");
                 return;
@@ -38,17 +39,17 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             _transform = parentTransform;
             _slots = new Dictionary<HexCoordinates, HexStackSlot>();
 
-            CreateAllSlots();
+            CreateAllSlots(animationService);
             _isInitialized = true;
         }
 
-        private void CreateAllSlots() {
+        private void CreateAllSlots(IHexagonAnimationService animationService) {
             for (int z = 0; z < _config.Height; z++) {
                 for (int x = 0; x < _config.Width; x++) {
                     HexCoordinates coordinates = _mapper.GetCoordinateFromOffset(x, z);
                     Vector3 position = _mapper.GetWorldPositionFromOffset(x, z);
                     
-                    HexStackSlot slot = CreateSlot(coordinates, position);
+                    HexStackSlot slot = CreateSlot(coordinates, position, animationService);
                     if (slot != null) {
                         _slots[coordinates] = slot;
                     }
@@ -56,7 +57,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             }
         }
 
-        private HexStackSlot CreateSlot(HexCoordinates coordinates, Vector3 position) {
+        private HexStackSlot CreateSlot(HexCoordinates coordinates, Vector3 position, IHexagonAnimationService animationService) {
             if (_config.SlotPrefab == null) {
                 Debug.LogError("HexStackSlot prefab is not assigned!");
                 return null;
@@ -64,9 +65,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
 
             HexStackSlot slot = Object.Instantiate(_config.SlotPrefab, _transform);
             slot.transform.localPosition = position;
-            slot.SetCoordinates(coordinates);
-            slot.SetGrid(this);
-            
+            slot.Initialize(coordinates, this, animationService);
             return slot;
         }
 

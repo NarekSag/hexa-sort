@@ -1029,6 +1029,7 @@ MonoBehaviour:
   autoRun: 1
   autoInjectGameObjects: []
   _hexGridConfig: {fileID: 11400000, guid: 83b91536fb43ee640a815e4312947ea3, type: 2}
+  _hexagonAnimationConfig: {fileID: 11400000, guid: 224da094319460d4484cb615250f9f5f, type: 2}
   _inputInstaller: {fileID: 1156081328}
 --- !u!4 &1156081327
 Transform:

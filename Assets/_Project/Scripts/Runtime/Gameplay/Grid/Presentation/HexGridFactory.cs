@@ -1,9 +1,14 @@
+using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Mappers;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
+using VContainer;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
-    public class HexGridFactory {
+    public class HexGridFactory 
+    {
+        [Inject] private IHexagonAnimationService _animationService;
+
         public HexGrid Create(HexGridConfig config, Transform parent = null) {
             if (config == null) {
                 Debug.LogError("HexGridConfig is not assigned!");
@@ -22,7 +27,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
 
             HexGrid grid = new HexGrid();
             IHexGridMapper mapper = new HexGridMapper(config.Width, config.Height);
-            grid.Initialize(config, mapper, gridObject.transform);
+            grid.Initialize(config, mapper, gridObject.transform, _animationService);
 
             return grid;
         }

@@ -1,6 +1,8 @@
 using UnityEngine;
 using System.Collections.Generic;
+using System.Linq;
 using _Project.Scripts.Runtime.Gameplay.Input.Drag;
+using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using _Project.Scripts.Runtime.Utilities.Logging;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
@@ -8,6 +10,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
         [SerializeField] private List<HexCell> _hexagons = new List<HexCell>();
         private BoxCollider _collider;
         private Vector3 _cellColliderSize;
+        
 
         private void Awake() {
             _collider = GetComponent<BoxCollider>();
@@ -54,9 +57,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             _collider.center = new Vector3(0f, totalHeight * 0.5f, 0f);
         }
 
-        private void RepositionAllHexagons() {
+        private void RepositionAllHexagons(int? excludeFromIndex = null) {
             for (int i = 0; i < _hexagons.Count; i++) {
                 if (_hexagons[i] != null) {
+                    // Skip repositioning if this index should be excluded (being animated)
+                    if (excludeFromIndex.HasValue && i >= excludeFromIndex.Value) {
+                        continue;
+                    }
+                    
                     float yOffset = _cellColliderSize.y * i;
                     _hexagons[i].transform.localPosition = new Vector3(0f, yOffset, 0f);
                 }
@@ -77,25 +85,54 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
 
         public List<HexCell> Hexagons => _hexagons;
 
-        public void AddHexCellsFrom(HexStack sourceStack) {
+        public void AddHexCellsFrom(HexStack sourceStack, bool animate = true, IHexagonAnimationService animationService = null) {
             if (sourceStack == null || sourceStack == this) return;
 
             // Store the starting index for positioning new hexagons
             int startingIndex = _hexagons.Count;
 
-            // Move all hexagons from source to this stack and position them
+            // Collect hexagons to merge and their target positions
+            var hexagonsToMerge = new List<HexCell>();
+            var targetLocalPositions = new List<Vector3>();
             int cellIndex = startingIndex;
+
             foreach (HexCell hexCell in sourceStack._hexagons) {
                 if (hexCell != null && !_hexagons.Contains(hexCell)) {
-                    _hexagons.Add(hexCell);
-                    hexCell.transform.SetParent(transform);
+                    hexagonsToMerge.Add(hexCell);
                     
-                    // Position the hexagon vertically stacked on top of existing ones
+                    // Calculate target local position
                     float yOffset = _cellColliderSize.y * cellIndex;
-                    hexCell.transform.localPosition = new Vector3(0f, yOffset, 0f);
+                    Vector3 targetLocalPosition = new Vector3(0f, yOffset, 0f);
+                    targetLocalPositions.Add(targetLocalPosition);
                     
                     cellIndex++;
                 }
+            }
+
+            if (hexagonsToMerge.Count == 0) return;
+
+            // Animate or immediately move hexagons
+            if (animate && animationService != null) {
+                // Use animation service
+                var hexagonTransforms = hexagonsToMerge.Select(cell => cell.transform).ToList();
+                animationService.AnimateHexagonStackMerge(
+                    hexagonTransforms,
+                    sourceStack.transform,
+                    transform,
+                    targetLocalPositions
+                );
+            } else {
+                // Immediate positioning (no animation)
+                for (int i = 0; i < hexagonsToMerge.Count; i++) {
+                    HexCell hexCell = hexagonsToMerge[i];
+                    hexCell.transform.SetParent(transform);
+                    hexCell.transform.localPosition = targetLocalPositions[i];
+                }
+            }
+
+            // Add all hexagons to this stack
+            foreach (HexCell hexCell in hexagonsToMerge) {
+                _hexagons.Add(hexCell);
             }
             
             // Update collider sizes
@@ -103,7 +140,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             sourceStack.UpdateColliderSize();
 
             // Reposition all hexagons to ensure they're stacked correctly
-            RepositionAllHexagons();
+            // Only do this if not animating, as animation handles positioning
+            if (!animate) {
+                RepositionAllHexagons();
+            } else {
+                // When animating, we still need to ensure existing hexagons are positioned correctly
+                // but skip the ones being animated
+                RepositionAllHexagons(excludeFromIndex: startingIndex);
+            }
 
             // Clear the source stack
             sourceStack._hexagons.Clear();

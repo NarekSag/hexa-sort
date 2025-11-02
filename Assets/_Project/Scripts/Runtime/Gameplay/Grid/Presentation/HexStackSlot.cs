@@ -1,20 +1,21 @@
 using UnityEngine;
 using System.Collections.Generic;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
+using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using _Project.Scripts.Runtime.Gameplay.Input.Drag;
+using VContainer;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexStackSlot : MonoBehaviour, IPlacementTarget {
-        [SerializeField] private HexCoordinates _coordinates;
         private readonly List<HexStack> _hexStacks = new List<HexStack>();
         private HexGrid _grid;
+        private IHexagonAnimationService _animationService;
+        private HexCoordinates _coordinates;
 
-        public void SetCoordinates(HexCoordinates coordinates) {
+        public void Initialize(HexCoordinates coordinates, HexGrid grid, IHexagonAnimationService animationService) {
             _coordinates = coordinates;
-        }
-
-        public void SetGrid(HexGrid grid) {
             _grid = grid;
+            _animationService = animationService;
         }
 
         public void SetHexStack(HexStack hexStack) {
@@ -54,10 +55,21 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
                 
                 foreach (HexStack sourceStack in stacksToMerge) {
                     if (sourceStack != null) {
-                        targetStack.AddHexCellsFrom(sourceStack);
-                        // Destroy the empty stack
+                        // Pass animation service if available
+                        if (_animationService != null) {
+                            targetStack.AddHexCellsFrom(sourceStack, animate: true, _animationService);
+                        } else {
+                            targetStack.AddHexCellsFrom(sourceStack, animate: false);
+                        }
+                        
+                        // Destroy the empty stack (with delay if animating)
                         if (sourceStack.Hexagons.Count == 0) {
-                            Destroy(sourceStack.gameObject);
+                            if (_animationService != null) {
+                                // Delay destruction to allow animation to complete
+                                Destroy(sourceStack.gameObject, 0.3f);
+                            } else {
+                                Destroy(sourceStack.gameObject);
+                            }
                         }
                     }
                 }
