@@ -65,7 +65,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             HexStackSlot slot = Object.Instantiate(_config.SlotPrefab, _transform);
             slot.transform.localPosition = position;
             slot.SetCoordinates(coordinates);
+            slot.SetGrid(this);
             
+            return slot;
+        }
+
+        public HexStackSlot GetSlot(HexCoordinates coordinates) {
+            _slots.TryGetValue(coordinates, out HexStackSlot slot);
             return slot;
         }
     }

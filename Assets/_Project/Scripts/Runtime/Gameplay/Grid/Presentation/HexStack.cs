@@ -33,7 +33,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             }
         }
 
-        private void UpdateColliderSize() {
+        public void UpdateColliderSize() {
             if (_collider == null)
             {
                 CustomDebug.LogError(LogCategory.Gameplay, "HexStack has no collider");
@@ -54,6 +54,15 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             _collider.center = new Vector3(0f, totalHeight * 0.5f, 0f);
         }
 
+        private void RepositionAllHexagons() {
+            for (int i = 0; i < _hexagons.Count; i++) {
+                if (_hexagons[i] != null) {
+                    float yOffset = _cellColliderSize.y * i;
+                    _hexagons[i].transform.localPosition = new Vector3(0f, yOffset, 0f);
+                }
+            }
+        }
+
         public void SetPosition(Vector3 position) {
             transform.position = position;
         }
@@ -64,6 +73,40 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
 
         public void SetParent(Transform parent) {
             transform.SetParent(parent);
+        }
+
+        public List<HexCell> Hexagons => _hexagons;
+
+        public void AddHexCellsFrom(HexStack sourceStack) {
+            if (sourceStack == null || sourceStack == this) return;
+
+            // Store the starting index for positioning new hexagons
+            int startingIndex = _hexagons.Count;
+
+            // Move all hexagons from source to this stack and position them
+            int cellIndex = startingIndex;
+            foreach (HexCell hexCell in sourceStack._hexagons) {
+                if (hexCell != null && !_hexagons.Contains(hexCell)) {
+                    _hexagons.Add(hexCell);
+                    hexCell.transform.SetParent(transform);
+                    
+                    // Position the hexagon vertically stacked on top of existing ones
+                    float yOffset = _cellColliderSize.y * cellIndex;
+                    hexCell.transform.localPosition = new Vector3(0f, yOffset, 0f);
+                    
+                    cellIndex++;
+                }
+            }
+            
+            // Update collider sizes
+            UpdateColliderSize();
+            sourceStack.UpdateColliderSize();
+
+            // Reposition all hexagons to ensure they're stacked correctly
+            RepositionAllHexagons();
+
+            // Clear the source stack
+            sourceStack._hexagons.Clear();
         }
     }
 }

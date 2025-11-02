@@ -49,5 +49,19 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models {
         public static bool operator !=(HexCoordinates left, HexCoordinates right) {
             return !left.Equals(right);
         }
+
+        /// <summary>
+        /// Gets all 6 neighbor coordinates in a hexagonal grid.
+        /// </summary>
+        public HexCoordinates[] GetNeighbors() {
+            return new HexCoordinates[] {
+                new HexCoordinates(X + 1, Z),      // East
+                new HexCoordinates(X + 1, Z - 1), // Northeast
+                new HexCoordinates(X, Z - 1),      // Northwest
+                new HexCoordinates(X - 1, Z),      // West
+                new HexCoordinates(X - 1, Z + 1),  // Southwest
+                new HexCoordinates(X, Z + 1)       // Southeast
+            };
+        }
     }
 }
