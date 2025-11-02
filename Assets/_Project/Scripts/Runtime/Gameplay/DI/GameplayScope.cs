@@ -4,20 +4,23 @@ using _Project.Scripts.Runtime.Utilities.Logging;
 using _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
 using UnityEngine;
+using _Project.Scripts.Runtime.Gameplay.Input.DI;
 
 namespace _Project.Scripts.Runtime.Gameplay.DI
 {
     public class GameplayScope : LifetimeScope
     {
         [SerializeField] private HexGridConfig _hexGridConfig;
+        [SerializeField] private InputInstaller _inputInstaller;
 
         protected override void Configure(IContainerBuilder builder)
         {
             try
             {
-                RegisterConfigs(builder);
+                RegisterComponents(builder);
                 RegisterServices(builder);
-                
+                RegisterInstallers(builder);
+
                 builder.RegisterEntryPoint<GameplayFlow>();
             }
             catch (System.Exception ex)
@@ -26,14 +29,22 @@ namespace _Project.Scripts.Runtime.Gameplay.DI
             }
         }
 
-        private void RegisterConfigs(IContainerBuilder builder)
+        private void RegisterServices(IContainerBuilder builder)
+        {
+            // Grid Services
+            builder.Register<HexGridFactory>(Lifetime.Scoped);
+            
+            
+        }
+
+        private void RegisterComponents(IContainerBuilder builder)
         {
             builder.RegisterComponent(_hexGridConfig);
         }
 
-        private void RegisterServices(IContainerBuilder builder)
+        private void RegisterInstallers(IContainerBuilder builder)
         {
-            builder.Register<HexGridFactory>(Lifetime.Scoped);
+            _inputInstaller.Install(builder);
         }
     }
 }

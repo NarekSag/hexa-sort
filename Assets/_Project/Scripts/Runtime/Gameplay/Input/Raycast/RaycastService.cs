@@ -1,7 +1,7 @@
 using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
 
-namespace _Project.Scripts.Runtime.Gameplay.Input {
+namespace _Project.Scripts.Runtime.Gameplay.Input.Raycast {
     public class RaycastService : IRaycastService {
         private const float MaxRaycastDistance = 1000f;
 

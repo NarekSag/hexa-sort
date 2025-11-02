@@ -1,6 +1,6 @@
 using UnityEngine;
 
-namespace _Project.Scripts.Runtime.Gameplay.Input {
+namespace _Project.Scripts.Runtime.Gameplay.Input.PositionCalculation {
     public class PositionCalculationService : IPositionCalculationService {
         private readonly Plane _dragPlane;
 

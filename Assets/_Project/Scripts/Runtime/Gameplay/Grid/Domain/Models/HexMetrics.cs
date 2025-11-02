@@ -3,7 +3,7 @@ using UnityEngine;
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models {
     public static class HexMetrics {
 
-        public const float OuterRadius = 1f;
+        public const float OuterRadius = 0.5f; // The scale of the object
 
         public const float InnerRadius = OuterRadius * 0.866025404f;
 
