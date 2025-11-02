@@ -1,15 +1,13 @@
 using UnityEngine;
 using VContainer;
 using _Project.Scripts.Runtime.Gameplay.Input.PositionCalculation;
+using _Project.Scripts.Runtime.Gameplay.Input.Raycast;
 
 namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
-    /// <summary>
-    /// Service responsible for handling drag interactions with draggable objects.
-    /// Follows SOLID principles by depending on IDraggable abstraction.
-    /// </summary>
     public class DragService : MonoBehaviour {
         [Inject] private IInputService _inputService;
         [Inject] private IPositionCalculationService _positionCalculationService;
+        [Inject] private IRaycastService _raycastService;
         
         private IDraggable _currentDraggable;
         private Vector3 _originalPosition;
@@ -38,14 +36,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
             Vector3 mousePosition = _inputService.GetMousePosition();
             Ray ray = camera.ScreenPointToRay(mousePosition);
 
-            // Try to find an IDraggable object under the mouse
-            if (Physics.Raycast(ray, out RaycastHit hit)) {
-                IDraggable draggable = hit.collider.GetComponent<IDraggable>();
-                if (draggable != null) {
-                    _currentDraggable = draggable;
-                    // Store the original position
-                    _originalPosition = draggable.GetPosition();
-                }
+            // Use RaycastService to find a draggable object
+            if (_raycastService.RaycastToDraggable(ray, out IDraggable draggable)) {
+                _currentDraggable = draggable;
+                _originalPosition = draggable.GetPosition();
             }
         }
 
@@ -58,22 +52,42 @@ namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
         }
 
         private void EndDrag() {
-            if (_currentDraggable != null) {
-                // Snap back to original position
+            if (_currentDraggable == null) return;
+
+            Camera camera = Camera.main;
+            if (camera != null) 
+            {
+                Vector3 mousePosition = _inputService.GetMousePosition();
+                Ray ray = camera.ScreenPointToRay(mousePosition);
+
+                // Get colliders from the current draggable to ignore them in the raycast
+                Collider[] collidersToIgnore = null;
+                if (_currentDraggable is MonoBehaviour draggableMono) 
+                {
+                    collidersToIgnore = draggableMono.GetComponentsInChildren<Collider>();
+                }
+
+                // Use RaycastService to find a placement target, ignoring current draggable's colliders
+                if (_raycastService.RaycastToPlacementTarget(ray, collidersToIgnore, out IPlacementTarget placementTarget))
+                {
+                    _currentDraggable.SetPosition(
+                        placementTarget.CanAccept(_currentDraggable, out Vector3 targetPosition)
+                            ? targetPosition
+                            : _originalPosition);
+                } 
+                else 
+                {
+                    // Not over a placement target, snap back to original position
+                    _currentDraggable.SetPosition(_originalPosition);
+                }
+            } 
+            else 
+            {
+                // No camera, just snap back
                 _currentDraggable.SetPosition(_originalPosition);
-                _currentDraggable = null;
             }
-        }
 
-        public void SetDraggable(IDraggable draggable) {
-            _currentDraggable = draggable;
-            if (draggable != null) {
-                _originalPosition = draggable.GetPosition();
-            }
-        }
-
-        public IDraggable GetCurrentDraggable() {
-            return _currentDraggable;
+            _currentDraggable = null;
         }
     }
 }

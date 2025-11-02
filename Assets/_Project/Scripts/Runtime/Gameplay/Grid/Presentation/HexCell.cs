@@ -3,11 +3,6 @@ using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexCell : MonoBehaviour {
-        [SerializeField] private HexCoordinates _coordinates;
-
-        public void SetCoordinates(HexCoordinates coordinates) {
-            _coordinates = coordinates;
-        }
     }
 }
 

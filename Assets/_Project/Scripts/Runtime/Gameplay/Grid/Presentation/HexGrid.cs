@@ -7,7 +7,7 @@ using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexGrid {
         private HexGridConfig _config;
-        private Dictionary<HexCoordinates, HexCell> _cells;
+        private Dictionary<HexCoordinates, HexStackSlot> _slots;
         private IHexGridMapper _mapper;
         private Transform _transform;
         private bool _isInitialized;
@@ -36,37 +36,37 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             _config = config;
             _mapper = mapper;
             _transform = parentTransform;
-            _cells = new Dictionary<HexCoordinates, HexCell>();
+            _slots = new Dictionary<HexCoordinates, HexStackSlot>();
 
-            CreateAllCells();
+            CreateAllSlots();
             _isInitialized = true;
         }
 
-        private void CreateAllCells() {
+        private void CreateAllSlots() {
             for (int z = 0; z < _config.Height; z++) {
                 for (int x = 0; x < _config.Width; x++) {
                     HexCoordinates coordinates = _mapper.GetCoordinateFromOffset(x, z);
                     Vector3 position = _mapper.GetWorldPositionFromOffset(x, z);
                     
-                    HexCell cell = CreateCell(coordinates, position);
-                    if (cell != null) {
-                        _cells[coordinates] = cell;
+                    HexStackSlot slot = CreateSlot(coordinates, position);
+                    if (slot != null) {
+                        _slots[coordinates] = slot;
                     }
                 }
             }
         }
 
-        private HexCell CreateCell(HexCoordinates coordinates, Vector3 position) {
-            if (_config.CellPrefab == null) {
-                Debug.LogError("HexCell prefab is not assigned!");
+        private HexStackSlot CreateSlot(HexCoordinates coordinates, Vector3 position) {
+            if (_config.SlotPrefab == null) {
+                Debug.LogError("HexStackSlot prefab is not assigned!");
                 return null;
             }
 
-            HexCell cell = Object.Instantiate(_config.CellPrefab, _transform);
-            cell.transform.localPosition = position;
-            cell.SetCoordinates(coordinates);
+            HexStackSlot slot = Object.Instantiate(_config.SlotPrefab, _transform);
+            slot.transform.localPosition = position;
+            slot.SetCoordinates(coordinates);
             
-            return cell;
+            return slot;
         }
     }
 }

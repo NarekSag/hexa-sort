@@ -1,30 +1,42 @@
 using UnityEngine;
-using _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
+using _Project.Scripts.Runtime.Gameplay.Input.Drag;
 
 namespace _Project.Scripts.Runtime.Gameplay.Input.Raycast {
     public class RaycastService : IRaycastService {
         private const float MaxRaycastDistance = 1000f;
 
-        public bool RaycastToHexStackSlot(Ray ray, out HexStackSlot hexStackSlot) {
-            hexStackSlot = null;
+        public bool RaycastToPlacementTarget(Ray ray, out IPlacementTarget placementTarget) {
+            return RaycastToPlacementTarget(ray, null, out placementTarget);
+        }
 
-            if (Physics.Raycast(ray, out RaycastHit hit, MaxRaycastDistance)) {
-                hexStackSlot = hit.collider.GetComponent<HexStackSlot>();
-                return hexStackSlot != null;
+        public bool RaycastToPlacementTarget(Ray ray, Collider[] ignoreColliders, out IPlacementTarget placementTarget) {
+            placementTarget = null;
+
+            // Use RaycastAll to get all hits, allowing us to ignore specific colliders
+            RaycastHit[] hits = Physics.RaycastAll(ray, MaxRaycastDistance);
+            
+            foreach (RaycastHit hit in hits) {
+                // Skip if this collider should be ignored
+                if (ignoreColliders != null && System.Array.IndexOf(ignoreColliders, hit.collider) >= 0) {
+                    continue;
+                }
+                
+                IPlacementTarget target = hit.collider.GetComponent<IPlacementTarget>();
+                if (target != null) {
+                    placementTarget = target;
+                    return true;
+                }
             }
 
             return false;
         }
 
-        public bool RaycastToHexStackContainer(Ray ray, out HexStackContainer hexStackContainer) {
-            hexStackContainer = null;
+        public bool RaycastToDraggable(Ray ray, out IDraggable draggable) {
+            draggable = null;
 
             if (Physics.Raycast(ray, out RaycastHit hit, MaxRaycastDistance)) {
-                var container = hit.collider.GetComponent<MonoBehaviour>() as HexStackContainer;
-                if (container != null) {
-                    hexStackContainer = container;
-                    return true;
-                }
+                draggable = hit.collider.GetComponent<IDraggable>();
+                return draggable != null;
             }
 
             return false;

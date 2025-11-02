@@ -14,4 +14,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Grid.Domain.Config.HexGridConfig
   _width: 3
   _height: 3
-  _cellPrefab: {fileID: 93956349096341290, guid: 87e872d616fe75f4a934ec442c9e477e, type: 3}
+  _slotPrefab: {fileID: 4525452528590598651, guid: 3fad0c56ccc9bcd43b8fb19e2a9ad46b, type: 3}
