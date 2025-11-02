@@ -2,7 +2,7 @@ using UnityEngine;
 using VContainer;
 using _Project.Scripts.Runtime.Gameplay.Input.PositionCalculation;
 using _Project.Scripts.Runtime.Gameplay.Input.Raycast;
-
+using _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
 namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
     public class DragService : MonoBehaviour {
         [Inject] private IInputService _inputService;
@@ -47,7 +47,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
             if (_currentDraggable == null) return;
 
             Vector3 mousePosition = _inputService.GetMousePosition();
-            Vector3 worldPosition = _positionCalculationService.ScreenToWorldPosition(mousePosition);
+            // Use the original Y position to create a drag plane at the stack's height
+            // _originalPosition.y / 2 - so it's lower than the stack's height but higher than the ground level
+            Vector3 worldPosition = _positionCalculationService.ScreenToWorldPosition(mousePosition, _originalPosition.y / 2);
+            
             _currentDraggable.SetPosition(worldPosition);
         }
 
@@ -70,10 +73,21 @@ namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
                 // Use RaycastService to find a placement target, ignoring current draggable's colliders
                 if (_raycastService.RaycastToPlacementTarget(ray, collidersToIgnore, out IPlacementTarget placementTarget))
                 {
-                    _currentDraggable.SetPosition(
-                        placementTarget.CanAccept(_currentDraggable, out Vector3 targetPosition)
-                            ? targetPosition
-                            : _originalPosition);
+                    if (placementTarget.CanAccept(_currentDraggable, out Vector3 targetPosition))
+                    {
+                        _currentDraggable.SetPosition(targetPosition);
+                        
+                        // Register the stack with the slot if it's a HexStackSlot
+                        if (placementTarget is HexStackSlot slot && _currentDraggable is HexStack stack)
+                        {
+                            slot.SetHexStack(stack);
+                        }
+                    }
+                    else
+                    {
+                        // Cannot accept this draggable, snap back to original position
+                        _currentDraggable.SetPosition(_originalPosition);
+                    }
                 } 
                 else 
                 {

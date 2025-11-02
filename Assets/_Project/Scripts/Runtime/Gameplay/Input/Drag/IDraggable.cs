@@ -11,6 +11,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
         /// Gets the current world position of the draggable object.
         /// </summary>
         Vector3 GetPosition();
+        /// <summary>
+        /// Sets the parent transform of the draggable object.
+        /// </summary>
+        void SetParent(Transform parent);
     }
 }
 
