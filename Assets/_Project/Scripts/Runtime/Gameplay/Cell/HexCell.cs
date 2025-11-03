@@ -3,6 +3,9 @@ using UnityEngine;
 namespace _Project.Scripts.Runtime.Gameplay.Cell {
     public class HexCell : MonoBehaviour, ICell {
         [SerializeField] private ColorType _colorType;
+        [SerializeField] private ColorMaterialConfig _colorMaterialConfig;
+        
+        private HexCellMaterialController _materialController;
         
         public Transform Transform => transform;
         
@@ -19,11 +22,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Cell {
             private set => _colorType = value;
         }
         
-        /// <summary>
-        /// Checks if this cell has a valid color type assigned.
-        /// </summary>
-        public bool HasColor() {
-            return true; // ColorType is always valid (enum default is 0 which is Red)
+        private void Awake() {
+            InitializeMaterialController();
+        }
+        
+        private void InitializeMaterialController() {
+            _materialController = new HexCellMaterialController(gameObject, _colorMaterialConfig);
+            _materialController.Initialize();
+            _materialController.UpdateMaterial(_colorType);
         }
     }
 }

@@ -7,5 +7,6 @@ namespace _Project.Scripts.Runtime.Utilities.Logging
         Loading,
         Gameplay,
         Grid,
+        Cell,
     }
 }
