@@ -14,9 +14,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
         private HexCoordinates _coordinates;
         private GridController _gridController;
 
-        /// <summary>
-        /// Gets a read-only collection of stacks in this slot.
-        /// </summary>
         public IReadOnlyList<HexStack> Stacks => _hexStacks.AsReadOnly();
 
         public void Initialize(HexCoordinates coordinates, HexGrid grid, IHexagonAnimationService animationService, GridController gridController) {
@@ -30,11 +27,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             SetHexStack(hexStack, checkNeighbors: true);
         }
 
-        /// <summary>
-        /// Sets a hex stack in this slot.
-        /// </summary>
-        /// <param name="hexStack">The stack to add.</param>
-        /// <param name="checkNeighbors">Whether to check neighbors and merge after adding.</param>
         internal void SetHexStack(HexStack hexStack, bool checkNeighbors) {
             if (hexStack == null) return;
             
@@ -44,6 +36,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
                 
                 _hexStacks.Add(hexStack);
                 hexStack.transform.SetParent(transform);
+                
+                // Notify the source board that this stack was placed (for refilling)
+                hexStack.NotifyPlaced();
                 
                 // Disable manual dragging if placed on empty slot
                 if (slotWasEmpty) {
@@ -56,10 +51,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
                 }
             }
         }
-
-        /// <summary>
-        /// Clears all stacks from this slot.
-        /// </summary>
+        
         public void ClearStacks() {
             _hexStacks.Clear();
         }

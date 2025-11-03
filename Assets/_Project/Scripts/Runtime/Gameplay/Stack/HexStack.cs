@@ -1,4 +1,5 @@
 using UnityEngine;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using _Project.Scripts.Runtime.Gameplay.Input.Drag;
@@ -15,6 +16,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
         private StackMergeService _mergeService;
         private StackPositionService _positionService;
         private bool _isDraggable = true;
+        
+        public event Action<HexStack> OnPlaced;
 
         // IStack implementation
         public Transform Transform => transform;
@@ -75,6 +78,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
         
         public void SetDraggable(bool draggable) {
             _isDraggable = draggable;
+        }
+        
+        public void NotifyPlaced() {
+            OnPlaced?.Invoke(this);
         }
 
         public List<HexCell> Hexagons => _hexagons;

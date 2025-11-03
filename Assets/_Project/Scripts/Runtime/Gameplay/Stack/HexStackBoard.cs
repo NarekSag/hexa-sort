@@ -1,4 +1,5 @@
 using UnityEngine;
+using System.Collections.Generic;
 using VContainer;
 
 namespace _Project.Scripts.Runtime.Gameplay.Stack {
@@ -10,11 +11,17 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
         
         [Inject] private readonly HexStackFactory _stackFactory;
         
+        private readonly Dictionary<HexStack, Transform> _trackedStacks = new Dictionary<HexStack, Transform>();
+        
         private void Start() {
-            CreateStacks();
+            CreateInitialStacks();
         }
         
-        private void CreateStacks() {
+        private void OnDestroy() {
+            UnsubscribeFromAllStacks();
+        }
+        
+        private void CreateInitialStacks() {
             if (_stackFactory == null) {
                 Debug.LogError("HexStackFactory is not initialized!");
                 return;
@@ -24,14 +31,37 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
                 return;
             }
             
-            // Create stack at left position
-            _stackFactory.CreateRandomStack(_leftPosition, _leftPosition.position);
-            
-            // Create stack at middle position
-            _stackFactory.CreateRandomStack(_middlePosition, _middlePosition.position);
-            
-            // Create stack at right position
-            _stackFactory.CreateRandomStack(_rightPosition, _rightPosition.position);
+            CreateStackAt(_leftPosition);
+            CreateStackAt(_middlePosition);
+            CreateStackAt(_rightPosition);
+        }
+        
+        private void CreateStackAt(Transform position) {
+            HexStack stack = _stackFactory.CreateRandomStack(position, position.position);
+            TrackStack(stack, position);
+        }
+        
+        private void TrackStack(HexStack stack, Transform position) {
+            _trackedStacks[stack] = position;
+            stack.OnPlaced += OnStackPlaced;
+        }
+        
+        private void OnStackPlaced(HexStack placedStack) {
+            if (_trackedStacks.TryGetValue(placedStack, out Transform position)) {
+                placedStack.OnPlaced -= OnStackPlaced;
+                _trackedStacks.Remove(placedStack);
+                
+                CreateStackAt(position);
+            }
+        }
+        
+        private void UnsubscribeFromAllStacks() {
+            foreach (var stack in _trackedStacks.Keys) {
+                if (stack != null) {
+                    stack.OnPlaced -= OnStackPlaced;
+                }
+            }
+            _trackedStacks.Clear();
         }
         
         /// <summary>
