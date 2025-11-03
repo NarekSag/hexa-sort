@@ -31,6 +31,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
         /// <param name="animate">Whether to animate the merge operation.</param>
         /// <param name="animationService">Optional animation service to use for animating.</param>
         void AddCellsFrom(IStack sourceStack, bool animate = true, IHexagonAnimationService animationService = null);
+
+        /// <summary>
+        /// Updates the collider size of the stack.
+        /// </summary>
+        void UpdateColliderSize();
     }
 }
 

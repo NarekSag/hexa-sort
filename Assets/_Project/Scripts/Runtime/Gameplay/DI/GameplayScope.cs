@@ -4,6 +4,8 @@ using _Project.Scripts.Runtime.Utilities.Logging;
 using _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
 using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
+using _Project.Scripts.Runtime.Gameplay.Stack;
+using _Project.Scripts.Runtime.Gameplay.Stack.Config;
 using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Input.DI;
 
@@ -13,6 +15,8 @@ namespace _Project.Scripts.Runtime.Gameplay.DI
     {
         [SerializeField] private HexGridConfig _hexGridConfig;
         [SerializeField] private HexagonAnimationConfig _hexagonAnimationConfig;
+        [SerializeField] private HexStackConfig _hexStackConfig;
+        [SerializeField] private HexStackBoard _hexStackBoard;
         [SerializeField] private InputInstaller _inputInstaller;
 
         protected override void Configure(IContainerBuilder builder)
@@ -36,6 +40,9 @@ namespace _Project.Scripts.Runtime.Gameplay.DI
             // Grid Services
             builder.Register<HexGridFactory>(Lifetime.Scoped);
             
+            // Stack Services
+            builder.Register<HexStackFactory>(Lifetime.Scoped);
+            
             // Animation Services
             builder.Register<IHexagonAnimationService, HexagonAnimationService>(Lifetime.Scoped);
         }
@@ -44,6 +51,8 @@ namespace _Project.Scripts.Runtime.Gameplay.DI
         {
             builder.RegisterComponent(_hexGridConfig);
             builder.RegisterComponent(_hexagonAnimationConfig);
+            builder.RegisterComponent(_hexStackConfig);
+            builder.RegisterComponent(_hexStackBoard);
         }
 
         private void RegisterInstallers(IContainerBuilder builder)

@@ -5,10 +5,11 @@ using _Project.Scripts.Runtime.Gameplay.Input.Drag;
 using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using _Project.Scripts.Runtime.Gameplay.Cell;
 using _Project.Scripts.Runtime.Gameplay.Stack.Services;
+using _Project.Scripts.Runtime.Utilities.Logging;
 
 namespace _Project.Scripts.Runtime.Gameplay.Stack {
     public class HexStack : MonoBehaviour, IDraggable, IStack {
-        [SerializeField] private List<HexCell> _hexagons = new List<HexCell>();
+        private List<HexCell> _hexagons = new List<HexCell>();
         private BoxCollider _collider;
         private StackColliderService _colliderService;
         private StackMergeService _mergeService;
@@ -25,7 +26,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
         
         public IList<ICell> Cells => _hexagons.Cast<ICell>().ToList();
 
-        private void Awake() {
+        public void Initialize() 
+        {
             _collider = GetComponent<BoxCollider>();
             if (_collider == null) {
                 _collider = gameObject.AddComponent<BoxCollider>();
@@ -37,8 +39,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
             _mergeService = new StackMergeService(_colliderService, _positionService);
             
             // Initialize collider if we have hexagons
-            if (_hexagons != null && _hexagons.Count > 0) {
-                if (_colliderService.CalculateCellColliderSize(_hexagons[0])) {
+            if (_hexagons != null && _hexagons.Count > 0) 
+            {
+                if (_colliderService.CalculateCellColliderSize(_hexagons[0])) 
+                {
                     UpdateColliderSize();
                 }
             }
@@ -46,6 +50,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
 
         public void UpdateColliderSize() {
             if (_colliderService == null || _collider == null) {
+                CustomDebug.LogError(LogCategory.Gameplay, "Collider or collider service is null");
                 return;
             }
             
@@ -76,13 +81,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
 
         // IStack implementation
         public void AddCellsFrom(IStack sourceStack, bool animate = true, IHexagonAnimationService animationService = null) {
-            if (sourceStack is HexStack hexStackSource) {
-                AddHexCellsFrom(hexStackSource, animate, animationService);
-            }
-        }
-
-        // Legacy method - kept for backward compatibility with existing code
-        public void AddHexCellsFrom(HexStack sourceStack, bool animate = true, IHexagonAnimationService animationService = null) {
             if (_mergeService == null) {
                 return;
             }

@@ -16,18 +16,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
             if (cellCollider != null) {
                 _cellColliderSize = cellCollider.bounds.size;
                 return true;
+                
             }
 
             CustomDebug.LogError(LogCategory.Gameplay, "Cell has no collider");
             return false;
-        }
-
-        // Legacy method - kept for backward compatibility during transition
-        public bool CalculateCellColliderSize(HexCell hexCell) {
-            if (hexCell == null) {
-                return false;
-            }
-            return CalculateCellColliderSize(hexCell as ICell);
         }
 
         public void UpdateCollider(BoxCollider collider, int hexagonCount) {
