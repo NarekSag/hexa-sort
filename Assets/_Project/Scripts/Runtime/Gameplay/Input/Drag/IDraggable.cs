@@ -15,6 +15,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
         /// Sets the parent transform of the draggable object.
         /// </summary>
         void SetParent(Transform parent);
+        
+        /// <summary>
+        /// Gets whether this object can be manually dragged by the player.
+        /// </summary>
+        bool CanBeDragged();
     }
 }
 

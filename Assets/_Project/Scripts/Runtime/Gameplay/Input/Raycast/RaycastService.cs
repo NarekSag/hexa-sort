@@ -35,8 +35,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Input.Raycast {
             draggable = null;
 
             if (Physics.Raycast(ray, out RaycastHit hit, MaxRaycastDistance)) {
-                draggable = hit.collider.GetComponent<IDraggable>();
-                return draggable != null;
+                IDraggable potentialDraggable = hit.collider.GetComponent<IDraggable>();
+                if (potentialDraggable != null && potentialDraggable.CanBeDragged()) {
+                    draggable = potentialDraggable;
+                    return true;
+                }
             }
 
             return false;

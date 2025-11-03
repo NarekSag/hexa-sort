@@ -13,6 +13,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
         private StackColliderService _colliderService;
         private StackMergeService _mergeService;
         private StackPositionService _positionService;
+        private bool _isDraggable = true;
 
         // IStack implementation
         public Transform Transform => transform;
@@ -61,6 +62,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
 
         public void SetParent(Transform parent) {
             transform.SetParent(parent);
+        }
+        
+        public bool CanBeDragged() {
+            return _isDraggable;
+        }
+        
+        public void SetDraggable(bool draggable) {
+            _isDraggable = draggable;
         }
 
         public List<HexCell> Hexagons => _hexagons;

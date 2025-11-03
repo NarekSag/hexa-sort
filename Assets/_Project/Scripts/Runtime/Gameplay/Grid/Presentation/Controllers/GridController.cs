@@ -32,7 +32,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
         }
 
         /// <summary>
-        /// Checks left and right neighbors (East and West) and triggers sorting if applicable.
+        /// Checks all neighbors in all 6 directions and triggers sorting if applicable.
         /// Recursively re-checks stacks that had transfers until no more transfers are possible.
         /// </summary>
         public void CheckNeighborsAndSort(HexCoordinates slotCoordinates) {
@@ -75,10 +75,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
             // Track if any transfers occurred in this check - if not, we won't recurse
             bool anyTransfersOccurred = false;
 
-            // Get left (West) and right (East) neighbors only
-            HexCoordinates[] leftRightNeighbors = GetLeftRightNeighbors(slotCoordinates);
+            // Get all 6 neighbors in all directions
+            HexCoordinates[] allNeighbors = GetAllNeighbors(slotCoordinates);
             
-            foreach (HexCoordinates neighborCoords in leftRightNeighbors) {
+            foreach (HexCoordinates neighborCoords in allNeighbors) {
                 // Skip neighbors that are already being checked in this cycle (prevents ping-pong)
                 if (visitedInThisCycle.Contains(neighborCoords)) {
                     continue;
@@ -143,13 +143,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
         }
 
         /// <summary>
-        /// Gets the left (West) and right (East) neighbors of the given coordinates.
-        /// In a hexagonal grid, East is index 0 and West is index 3.
+        /// Gets all 6 neighbors of the given coordinates in all directions.
+        /// Includes: East, Northeast, Northwest, West, Southwest, Southeast.
         /// </summary>
-        private HexCoordinates[] GetLeftRightNeighbors(HexCoordinates coordinates) {
-            HexCoordinates[] allNeighbors = coordinates.GetNeighbors();
-            // East (index 0) = right, West (index 3) = left
-            return new HexCoordinates[] { allNeighbors[0], allNeighbors[3] };
+        private HexCoordinates[] GetAllNeighbors(HexCoordinates coordinates) {
+            return coordinates.GetNeighbors();
         }
 
         public bool IsValidCoordinate(HexCoordinates coordinates) {

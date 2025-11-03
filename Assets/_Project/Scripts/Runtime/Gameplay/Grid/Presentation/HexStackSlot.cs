@@ -39,8 +39,16 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             if (hexStack == null) return;
             
             if (!_hexStacks.Contains(hexStack)) {
+                // If this slot was empty before adding the stack, make the stack non-draggable
+                bool slotWasEmpty = _hexStacks.Count == 0;
+                
                 _hexStacks.Add(hexStack);
                 hexStack.transform.SetParent(transform);
+                
+                // Disable manual dragging if placed on empty slot
+                if (slotWasEmpty) {
+                    hexStack.SetDraggable(false);
+                }
                 
                 // Check neighbors and merge stacks via grid controller
                 if (checkNeighbors && _gridController != null) {
