@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Mappers;
 using _Project.Scripts.Runtime.Gameplay.Stack.Controllers;
@@ -36,8 +37,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
         /// Recursively re-checks stacks that had transfers until no more transfers are possible.
         /// </summary>
         public void CheckNeighborsAndSort(HexCoordinates slotCoordinates) {
-            // Use a visited set to prevent checking the same slot multiple times in one cycle
-            CheckNeighborsAndSortRecursive(slotCoordinates, new HashSet<HexCoordinates>(), 0);
+            // Fire and forget async operation - the recursive method will handle the async chain
+            CheckNeighborsAndSortRecursive(slotCoordinates, new HashSet<HexCoordinates>(), 0).Forget();
         }
 
         /// <summary>
@@ -46,7 +47,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
         /// <param name="slotCoordinates">The slot coordinates to check</param>
         /// <param name="visitedInThisCycle">Set of coordinates already checked in this recursion cycle</param>
         /// <param name="depth">Current recursion depth (prevents infinite loops)</param>
-        private void CheckNeighborsAndSortRecursive(HexCoordinates slotCoordinates, HashSet<HexCoordinates> visitedInThisCycle, int depth) {
+        private async UniTask CheckNeighborsAndSortRecursive(HexCoordinates slotCoordinates, HashSet<HexCoordinates> visitedInThisCycle, int depth) {
             // Prevent infinite recursion
             if (depth > MAX_RECURSION_DEPTH) {
                 return;
@@ -100,8 +101,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
                             continue;
                         }
 
-                        // Process sorting between the two stacks
-                        SortingResult result = _sortingService.ProcessStackPair(currentStack, neighborStack, _animationService);
+                        // Process sorting between the two stacks and await animation completion
+                        SortingResult result = await _sortingService.ProcessStackPair(currentStack, neighborStack, _animationService);
                         
                         // If transfers occurred, mark both slots for re-checking
                         if (result != null && result.WasSortingTriggered) {
@@ -131,7 +132,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
                 // but includes all others to prevent infinite loops
                 HashSet<HexCoordinates> newVisitedSet = new HashSet<HexCoordinates>(visitedInThisCycle);
                 newVisitedSet.Remove(coordsToRecheck); // Remove the slot we're re-checking
-                CheckNeighborsAndSortRecursive(coordsToRecheck, newVisitedSet, depth + 1);
+                await CheckNeighborsAndSortRecursive(coordsToRecheck, newVisitedSet, depth + 1);
             }
         }
 

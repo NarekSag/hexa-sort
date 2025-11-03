@@ -1,6 +1,7 @@
 using UnityEngine;
 using System.Collections.Generic;
 using DG.Tweening;
+using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Utilities.Logging;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
 
@@ -12,7 +13,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Animation {
             _config = config;
         }
 
-        public void AnimateHexagonMerge(Transform hexagon, Vector3 sourcePosition, Vector3 destinationPosition, Vector3 flipAxis, float delay) {
+        public async UniTask AnimateHexagonMerge(Transform hexagon, Vector3 sourcePosition, Vector3 destinationPosition, Vector3 flipAxis, float delay) {
             if (hexagon == null) {
                 CustomDebug.LogError(LogCategory.Gameplay, "Hexagon transform is null in AnimateHexagonMerge");
                 return;
@@ -42,8 +43,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Animation {
                     hexagon.rotation = originalRotation;
                 });
 
-            // Create jump animation
-            hexagon.transform.DOJump(
+            // Create jump animation (this is the main animation we wait for)
+            var jumpTween = hexagon.transform.DOJump(
                 destinationPosition,
                 _config.JumpPower,
                 0, // Number of jumps (0 = smooth arc)
@@ -55,9 +56,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Animation {
                  hexagon.position = destinationPosition;
                  hexagon.rotation = originalRotation;
              });
+
+            // Wait for jump animation to complete (it's the main movement animation)
+            await UniTask.WaitUntil(() => !jumpTween.IsActive());
         }
 
-        public void AnimateHexagonStackMerge(
+        public async UniTask AnimateHexagonStackMerge(
             List<Transform> hexagons,
             Transform sourceStackTransform,
             Transform destinationStackTransform,
@@ -77,6 +81,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Animation {
                 CustomDebug.LogError(LogCategory.Gameplay, "Target positions count doesn't match hexagons count in AnimateHexagonStackMerge");
                 return;
             }
+
+            // Create list of tasks for all animations
+            var animationTasks = new List<UniTask>();
 
             for (int i = 0; i < hexagons.Count; i++) {
                 Transform hexagon = hexagons[i];
@@ -107,9 +114,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Animation {
                 // Restore original rotation before animating (parent change might have affected it)
                 hexagon.rotation = originalRotation;
 
-                // Animate to the destination
-                AnimateHexagonMerge(hexagon, sourceWorldPosition, destinationWorldPosition, flipAxis, delay);
+                // Animate to the destination and add to task list
+                animationTasks.Add(AnimateHexagonMerge(hexagon, sourceWorldPosition, destinationWorldPosition, flipAxis, delay));
             }
+
+            // Wait for all animations to complete
+            await UniTask.WhenAll(animationTasks);
         }
     }
 }
