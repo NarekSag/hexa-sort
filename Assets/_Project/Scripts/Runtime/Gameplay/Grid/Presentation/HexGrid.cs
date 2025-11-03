@@ -73,17 +73,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
 
             HexStackSlot slot = Object.Instantiate(_config.SlotPrefab, _transform);
             slot.transform.localPosition = position;
-            slot.Initialize(coordinates, this, animationService, _gridController);
+            slot.Initialize(coordinates, _gridController);
             return slot;
         }
 
         public HexStackSlot GetSlot(HexCoordinates coordinates) {
             _slots.TryGetValue(coordinates, out HexStackSlot slot);
             return slot;
-        }
-
-        public GridController GetGridController() {
-            return _gridController;
         }
     }
 }

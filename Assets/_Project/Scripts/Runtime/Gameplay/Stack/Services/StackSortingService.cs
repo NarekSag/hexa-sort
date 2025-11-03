@@ -128,13 +128,21 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
         /// <summary>
         /// Executes a pure-to-pure merge. All cells from right stack move to left stack.
         /// </summary>
-        public void ExecutePureToPureMerge(IStack leftStack, IStack rightStack, IHexagonAnimationService animationService) {
+        public async UniTask ExecutePureToPureMerge(IStack leftStack, IStack rightStack, IHexagonAnimationService animationService) {
             if (leftStack == null || rightStack == null) {
                 return;
             }
 
             bool animate = animationService != null;
-            _mergeService.MergeStacks(leftStack, rightStack, animate, animationService);
+            
+            // Handle merge with animation awaiting
+            if (animate && animationService != null) {
+                // Merge stacks with animation and await completion
+                await MergeStacksWithAnimation(leftStack, rightStack, animationService);
+            } else {
+                // Use merge service for non-animated merge
+                _mergeService.MergeStacks(leftStack, rightStack, false, null);
+            }
 
             // Update colliders if stacks are HexStack
             if (leftStack is HexStack leftHexStack) {
@@ -142,6 +150,85 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
             }
             if (rightStack is HexStack rightHexStack) {
                 rightHexStack.UpdateColliderSize();
+            }
+        }
+        
+        /// <summary>
+        /// Helper method to merge stacks with animation and await completion.
+        /// </summary>
+        private async UniTask MergeStacksWithAnimation(IStack targetStack, IStack sourceStack, IHexagonAnimationService animationService) {
+            if (targetStack == null || sourceStack == null || targetStack == sourceStack) {
+                return;
+            }
+
+            IList<ICell> targetCells = targetStack.Cells;
+            IList<ICell> sourceCells = sourceStack.Cells;
+
+            if (sourceCells == null || sourceCells.Count == 0) {
+                return;
+            }
+
+            // Ensure collider service is initialized
+            ICell cellForSize = null;
+            if (targetCells != null && targetCells.Count > 0) {
+                cellForSize = targetCells[0];
+            } else if (sourceCells != null && sourceCells.Count > 0) {
+                cellForSize = sourceCells[0];
+            }
+            
+            if (cellForSize != null) {
+                _colliderService.CalculateCellColliderSize(cellForSize);
+            }
+
+            // Store the starting index for positioning new cells
+            int startingIndex = targetCells != null ? targetCells.Count : 0;
+
+            // Collect cells to merge and their target positions (LIFO - process from last to first)
+            var cellsToMerge = new List<ICell>();
+            var targetLocalPositions = new List<Vector3>();
+            int cellIndex = startingIndex;
+
+            // Process cells in reverse order (LIFO - last in, first out)
+            for (int i = sourceCells.Count - 1; i >= 0; i--) {
+                ICell cell = sourceCells[i];
+                if (cell != null && !targetCells.Contains(cell)) {
+                    cellsToMerge.Add(cell);
+                    
+                    // Calculate target local position
+                    float yOffset = _colliderService.CalculateYOffset(cellIndex);
+                    Vector3 targetLocalPosition = new Vector3(0f, yOffset, 0f);
+                    targetLocalPositions.Add(targetLocalPosition);
+                    
+                    cellIndex++;
+                }
+            }
+
+            if (cellsToMerge.Count == 0) {
+                return;
+            }
+
+            // Animate and await completion
+            if (animationService != null) {
+                var cellTransforms = cellsToMerge.Select(cell => cell.Transform).ToList();
+                await animationService.AnimateHexagonStackMerge(
+                    cellTransforms,
+                    sourceStack.Transform,
+                    targetStack.Transform,
+                    targetLocalPositions
+                );
+            }
+
+            // Update stack lists
+            if (targetStack is HexStack targetHexStack) {
+                foreach (ICell cell in cellsToMerge) {
+                    if (cell is HexCell hexCell && !targetHexStack.Hexagons.Contains(hexCell)) {
+                        targetHexStack.Hexagons.Add(hexCell);
+                    }
+                }
+            }
+
+            if (sourceStack is HexStack sourceHexStack) {
+                sourceHexStack.Hexagons.Clear();
             }
         }
 
@@ -265,7 +352,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
                 
                 if (leftColor.HasValue && rightColor.HasValue && leftColor.Value == rightColor.Value) {
                     int cellsBefore = rightStack.Cells.Count;
-                    ExecutePureToPureMerge(leftStack, rightStack, animationService);
+                    await ExecutePureToPureMerge(leftStack, rightStack, animationService);
                     int cellsMoved = cellsBefore; // All cells moved
                     return SortingResult.PureMerge(cellsMoved);
                 }

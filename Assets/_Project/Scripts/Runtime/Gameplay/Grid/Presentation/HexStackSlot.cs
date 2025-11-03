@@ -1,7 +1,6 @@
 using UnityEngine;
 using System.Collections.Generic;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
-using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using _Project.Scripts.Runtime.Gameplay.Input.Drag;
 using _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers;
 using _Project.Scripts.Runtime.Gameplay.Stack;
@@ -9,17 +8,13 @@ using _Project.Scripts.Runtime.Gameplay.Stack;
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexStackSlot : MonoBehaviour, IPlacementTarget {
         private readonly List<HexStack> _hexStacks = new List<HexStack>();
-        private HexGrid _grid;
-        private IHexagonAnimationService _animationService;
         private HexCoordinates _coordinates;
         private GridController _gridController;
 
         public IReadOnlyList<HexStack> Stacks => _hexStacks.AsReadOnly();
 
-        public void Initialize(HexCoordinates coordinates, HexGrid grid, IHexagonAnimationService animationService, GridController gridController) {
+        public void Initialize(HexCoordinates coordinates, GridController gridController) {
             _coordinates = coordinates;
-            _grid = grid;
-            _animationService = animationService;
             _gridController = gridController;
         }
 
@@ -47,7 +42,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
                 
                 // Check neighbors and merge stacks via grid controller
                 if (checkNeighbors && _gridController != null) {
-                    _gridController.CheckNeighborsAndMerge(_coordinates);
+                    _gridController.CheckNeighborsAndSort(_coordinates);
                 }
             }
         }

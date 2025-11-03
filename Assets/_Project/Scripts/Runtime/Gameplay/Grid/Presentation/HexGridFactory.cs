@@ -2,9 +2,9 @@ using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Mappers;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services;
 using VContainer;
 using _Project.Scripts.Runtime.Gameplay.Stack.Services;
-using _Project.Scripts.Runtime.Gameplay.Stack.Controllers;
 using _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
@@ -31,12 +31,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             HexGrid grid = new HexGrid();
             IHexGridMapper mapper = new HexGridMapper(config.Width, config.Height);
             
-            // Create services for stack operations
+            //TODO: Refactor this logic
             StackColliderService colliderService = new StackColliderService();
             StackPositionService positionService = new StackPositionService(colliderService);
             StackMergeService mergeService = new StackMergeService(colliderService, positionService);
             
-            // Create stack state analyzer and sorting service
             StackStateAnalyzer stateAnalyzer = new StackStateAnalyzer();
             StackSortingService sortingService = new StackSortingService(
                 stateAnalyzer, 
@@ -44,16 +43,15 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
                 positionService, 
                 colliderService);
             
-            // Create controllers - StackController first
-            StackController stackController = new StackController(mergeService, positionService, _animationService);
+            GridNeighborService neighborService = new GridNeighborService(grid, sortingService, _animationService);
+            GridRecursionService recursionService = new GridRecursionService();
+            GridCleanupService cleanupService = new GridCleanupService(grid, sortingService, _animationService);
             
-            // GridController needs the grid, sorting service, and animation service
-            Controllers.GridController gridController = new Controllers.GridController(
+            GridController gridController = new GridController(
                 grid, 
-                mapper, 
-                stackController,
-                sortingService,
-                _animationService);
+                neighborService,
+                recursionService,
+                cleanupService);
             
             grid.Initialize(config, mapper, gridObject.transform, _animationService, gridController);
 
