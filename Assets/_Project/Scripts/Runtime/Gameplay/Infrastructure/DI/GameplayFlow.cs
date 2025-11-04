@@ -10,20 +10,18 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
     {
         private readonly HexGridFactory _hexGridFactory;
         private readonly HexGridConfig _hexGridConfig;
-        private readonly HexAnimationConfig _hexAnimationConfig;
         
-        public GameplayFlow(HexGridFactory hexGridFactory, HexGridConfig hexGridConfig, HexAnimationConfig hexAnimationConfig)
+        public GameplayFlow(HexGridFactory hexGridFactory, HexGridConfig hexGridConfig)
         {
             _hexGridFactory = hexGridFactory;
             _hexGridConfig = hexGridConfig;
-            _hexAnimationConfig = hexAnimationConfig;
         }
 
         public void Start()
         {
             try
             {
-                _hexGridFactory.Create(_hexGridConfig, _hexAnimationConfig);
+                _hexGridFactory.Create(_hexGridConfig);
                 CustomDebug.Log(LogCategory.Gameplay, "GameplayFlow started");
             }
             catch (Exception e)

@@ -9,6 +9,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Cell
     {
         [SerializeField] private ColorType _colorType;
         [SerializeField] private ColorMaterialConfig _colorMaterialConfig;
+        [SerializeField] private HexAnimationConfig _hexAnimationConfig;
             
         private HexCellMaterial _materialController;
         private HexCellAnimator _animator;
@@ -27,7 +28,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Cell
             
         public ColorType ColorType {
             get => _colorType;
-            private set => _colorType = value;
         }
         
         public void Initialize(ColorType colorType, int index) 
@@ -36,20 +36,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Cell
             _collider = GetComponent<Collider>();
 
             InitializeMaterialController(_colorType);
-
+            InitializeAnimator();
             transform.localPosition = new Vector3(0, index * Height, 0);
         }
-
-        /// <summary>
-        /// Initializes the cell with color type, index, and animation config.
-        /// </summary>
-        public void Initialize(ColorType colorType, int index, HexAnimationConfig animationConfig) {
-            Initialize(colorType, index);
-            InitializeAnimator(animationConfig);
-        }
         
-        private void InitializeAnimator(HexAnimationConfig animationConfig) {
-            if (animationConfig == null) {
+        private void InitializeAnimator() {
+            if (_hexAnimationConfig == null) {
                 return;
             }
 
@@ -59,12 +51,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Cell
                 _animator = gameObject.AddComponent<HexCellAnimator>();
             }
 
-            _animator.Initialize(animationConfig);
+            _animator.Initialize(_hexAnimationConfig);
         }
 
-        /// <summary>
-        /// Gets the animator component for this cell.
-        /// </summary>
         public HexCellAnimator GetAnimator() {
             return _animator;
         }

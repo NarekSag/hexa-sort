@@ -50,6 +50,17 @@ namespace _Project.Scripts.Runtime.Gameplay.Core.Interfaces {
         void UpdateColliderSize();
 
         /// <summary>
+        /// Calculates the Y offset for a cell at the given index.
+        /// </summary>
+        float CalculateYOffset(int index);
+
+        /// <summary>
+        /// Repositions all cells in this stack based on their index.
+        /// </summary>
+        /// <param name="excludeFromIndex">Optional index to exclude from repositioning (for cells being animated).</param>
+        void RepositionAllCells(int? excludeFromIndex = null);
+
+        /// <summary>
         /// Sets the parent transform of the stack.
         /// </summary>
         void SetParent(Transform parent);

@@ -1,92 +1,36 @@
 using UnityEngine;
-using System.Collections.Generic;
 using VContainer;
-using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories;
 
 namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack {
     public class HexStackBoard : MonoBehaviour {
-        [Header("Stack Positions")]
-        [SerializeField] private Transform _leftPosition;
-        [SerializeField] private Transform _middlePosition;
-        [SerializeField] private Transform _rightPosition;
+        [Header("Spawn Points")]
+        [Tooltip("Assign StackSpawnPoint components from child GameObjects, or leave empty to auto-detect.")]
+        [SerializeField] private StackSpawnPoint[] _spawnPoints;
         
-        [Inject] private readonly HexStackFactory _stackFactory;
+        [Inject] private HexStackFactory _stackFactory;
         
-        private readonly Dictionary<IStack, Transform> _trackedStacks = new Dictionary<IStack, Transform>();
+        private void Awake() {
+            // Auto-detect spawn points if not assigned
+            if (_spawnPoints == null || _spawnPoints.Length == 0) {
+                _spawnPoints = GetComponentsInChildren<StackSpawnPoint>();
+            }
+        }
         
         private void Start() {
-            CreateInitialStacks();
+            InitializeSpawnPoints();
         }
         
-        private void OnDestroy() {
-            UnsubscribeFromAllStacks();
-        }
-        
-        private void CreateInitialStacks() {
-            if (_stackFactory == null) {
-                Debug.LogError("HexStackFactory is not initialized!");
+        private void InitializeSpawnPoints() {
+            if (_spawnPoints == null || _spawnPoints.Length == 0) {
                 return;
             }
             
-            if (!ValidateTransforms()) {
-                return;
-            }
-            
-            CreateStackAt(_leftPosition);
-            CreateStackAt(_middlePosition);
-            CreateStackAt(_rightPosition);
-        }
-        
-        private void CreateStackAt(Transform position) {
-            IStack stack = _stackFactory.CreateRandomStack(position, position.position);
-            TrackStack(stack, position);
-        }
-        
-        private void TrackStack(IStack stack, Transform position) {
-            _trackedStacks[stack] = position;
-            stack.OnPlaced += OnStackPlaced;
-        }
-        
-        private void OnStackPlaced(IStack placedStack) {
-            if (_trackedStacks.TryGetValue(placedStack, out Transform position)) {
-                placedStack.OnPlaced -= OnStackPlaced;
-                _trackedStacks.Remove(placedStack);
-                
-                CreateStackAt(position);
-            }
-        }
-        
-        private void UnsubscribeFromAllStacks() {
-            foreach (var stack in _trackedStacks.Keys) {
-                if (stack != null) {
-                    stack.OnPlaced -= OnStackPlaced;
+            foreach (var spawnPoint in _spawnPoints) {
+                if (spawnPoint != null) {
+                    spawnPoint.Initialize(_stackFactory);
                 }
             }
-            _trackedStacks.Clear();
-        }
-        
-        /// <summary>
-        /// Validates that all required transforms are assigned.
-        /// </summary>
-        /// <returns>True if all transforms are valid, false otherwise.</returns>
-        private bool ValidateTransforms() {
-            if (_leftPosition == null) {
-                Debug.LogError("Left position transform is not assigned!");
-                return false;
-            }
-            
-            if (_middlePosition == null) {
-                Debug.LogError("Middle position transform is not assigned!");
-                return false;
-            }
-            
-            if (_rightPosition == null) {
-                Debug.LogError("Right position transform is not assigned!");
-                return false;
-            }
-            
-            return true;
         }
     }
 }

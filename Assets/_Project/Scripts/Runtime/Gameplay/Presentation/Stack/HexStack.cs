@@ -1,7 +1,6 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
 using _Project.Scripts.Runtime.Utilities.Logging;
@@ -10,9 +9,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack {
     public class HexStack : MonoBehaviour, IDraggable, IStack {
         private List<ICell> _cells = new List<ICell>();
         private BoxCollider _collider;
-        private StackColliderService _colliderService;
+        private HexStackCollider _stackCollider;
         private StackMergeService _mergeService;
-        private StackPositionService _positionService;
         private bool _isDraggable = true;
 
         private float _height = 0f;
@@ -40,15 +38,20 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack {
             
             _height = _collider.bounds.size.y;
             
-            // Initialize services
-            _colliderService = new StackColliderService();
-            _positionService = new StackPositionService(_colliderService);
-            _mergeService = new StackMergeService(_colliderService, _positionService);
+            // Initialize stack collider component
+            _stackCollider = GetComponent<HexStackCollider>();
+            if (_stackCollider == null) {
+                _stackCollider = gameObject.AddComponent<HexStackCollider>();
+            }
+            _stackCollider.Initialize(_collider);
             
-            // Initialize collider if we have hexagons
+            // Initialize services (no longer need position or collider services)
+            _mergeService = new StackMergeService();
+            
+            // Initialize collider if we have cells
             if (_cells != null && _cells.Count > 0) 
             {
-                if (_colliderService.CalculateCellColliderSize(_cells[0])) 
+                if (_stackCollider.CalculateCellColliderSize(_cells[0])) 
                 {
                     UpdateColliderSize();
                 }
@@ -56,12 +59,51 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack {
         }
 
         public void UpdateColliderSize() {
-            if (_colliderService == null || _collider == null) {
-                CustomDebug.LogError(LogCategory.Gameplay, "Collider or collider service is null");
+            if (_stackCollider == null) {
+                CustomDebug.LogError(LogCategory.Gameplay, "Stack collider component is null");
                 return;
             }
             
-            _colliderService.UpdateCollider(_collider, _cells.Count);
+            _stackCollider.UpdateCollider(_cells.Count);
+        }
+
+        /// <summary>
+        /// Gets the stack collider component.
+        /// </summary>
+        public HexStackCollider GetStackCollider() {
+            return _stackCollider;
+        }
+
+        /// <summary>
+        /// Calculates the Y offset for a cell at the given index.
+        /// </summary>
+        public float CalculateYOffset(int index) {
+            if (_stackCollider == null) {
+                return 0f;
+            }
+            return _stackCollider.CalculateYOffset(index);
+        }
+
+        /// <summary>
+        /// Repositions all cells in this stack based on their index.
+        /// </summary>
+        /// <param name="excludeFromIndex">Optional index to exclude from repositioning (for cells being animated).</param>
+        public void RepositionAllCells(int? excludeFromIndex = null) {
+            if (_cells == null) {
+                return;
+            }
+
+            for (int i = 0; i < _cells.Count; i++) {
+                if (_cells[i] != null) {
+                    // Skip repositioning if this index should be excluded (being animated)
+                    if (excludeFromIndex.HasValue && i >= excludeFromIndex.Value) {
+                        continue;
+                    }
+                    
+                    float yOffset = CalculateYOffset(i);
+                    _cells[i].LocalPosition = new Vector3(0f, yOffset, 0f);
+                }
+            }
         }
 
         public void SetPosition(Vector3 position) {
@@ -107,9 +149,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack {
             }
 
             if (!animate) {
-                _positionService.RepositionAllCells(_cells);
+                RepositionAllCells();
             } else {
-                _positionService.RepositionAllCells(_cells, excludeFromIndex: startingIndex);
+                RepositionAllCells(excludeFromIndex: startingIndex);
             }
         }
     }

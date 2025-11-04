@@ -4,15 +4,12 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Cell;
+using _Project.Scripts.Runtime.Gameplay.Presentation.Stack;
 
 namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
     public class StackMergeService {
-        private readonly StackColliderService _colliderService;
-        private readonly StackPositionService _positionService;
-
-        public StackMergeService(StackColliderService colliderService, StackPositionService positionService) {
-            _colliderService = colliderService;
-            _positionService = positionService;
+        public StackMergeService() {
+            // No dependencies needed - stacks handle their own positioning
         }
 
         public async UniTask MergeStacks(IStack targetStack, IStack sourceStack, bool animate = true) {
@@ -27,7 +24,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 return;
             }
 
-            // Ensure collider service is initialized with cell size before calculating offsets
+            // Ensure stack collider is initialized with cell size before calculating offsets
             // Try target stack first, then source stack
             ICell cellForSize = null;
             if (targetCells != null && targetCells.Count > 0) {
@@ -36,8 +33,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 cellForSize = sourceCells[0];
             }
             
-            if (cellForSize != null) {
-                _colliderService.CalculateCellColliderSize(cellForSize);
+            // Initialize cell collider size on target stack if needed
+            if (cellForSize != null && targetStack is HexStack targetHexStack) {
+                HexStackCollider targetCollider = targetHexStack.GetStackCollider();
+                if (targetCollider != null && targetCollider.CellColliderSize == Vector3.zero) {
+                    targetCollider.CalculateCellColliderSize(cellForSize);
+                }
             }
 
             // Store the starting index for positioning new cells
@@ -54,8 +55,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 if (cell != null && !targetCells.Contains(cell)) {
                     cellsToMerge.Add(cell);
                     
-                    // Calculate target local position
-                    float yOffset = _colliderService.CalculateYOffset(cellIndex);
+                    // Calculate target local position using target stack's collider
+                    float yOffset = targetStack.CalculateYOffset(cellIndex);
                     Vector3 targetLocalPosition = new Vector3(0f, yOffset, 0f);
                     targetLocalPositions.Add(targetLocalPosition);
                     

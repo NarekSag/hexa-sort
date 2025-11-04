@@ -126,3 +126,4 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Grid.Presentation.HexCell
   _colorType: 0
   _colorMaterialConfig: {fileID: 11400000, guid: e7305c7fbbc7499bbf0c851a05669122, type: 2}
+  _hexAnimationConfig: {fileID: 11400000, guid: 224da094319460d4484cb615250f9f5f, type: 2}

@@ -9,7 +9,6 @@ using VContainer;
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
     public class HexStackFactory {
         [Inject] private readonly HexStackConfig _config;
-        [Inject] private readonly HexAnimationConfig _animationConfig;
         
         public IStack CreateRandomStack(Transform parent = null, Vector3 position = default) {
             GameObject stackObject = new GameObject("HexStack");
@@ -40,12 +39,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
             
             ColorType randomColor = _config.AvailableColors[Random.Range(0, _config.AvailableColors.Length)];
             
-            // Use the overload that accepts animation config if it's a HexCell
-            if (cell is HexCell hexCell && _animationConfig != null) {
-                hexCell.Initialize(randomColor, index, _animationConfig);
-            } else {
-                cell.Initialize(randomColor, index);
-            }
+            cell.Initialize(randomColor, index);
             
             return cell;
         }

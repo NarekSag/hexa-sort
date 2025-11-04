@@ -7,13 +7,10 @@ using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
 namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack.Controllers {
     public class StackController {
         private readonly StackMergeService _mergeService;
-        private readonly StackPositionService _positionService;
 
         public StackController(
-            StackMergeService mergeService,
-            StackPositionService positionService) {
+            StackMergeService mergeService) {
             _mergeService = mergeService;
-            _positionService = positionService;
         }
 
         public async UniTask MergeStacks(IStack targetStack, IStack sourceStack, bool animate = true) {
@@ -35,9 +32,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack.Controllers {
 
             // Reposition cells if not animating
             if (!animate) {
-                _positionService.RepositionAllHexagons(targetStack.Cells);
+                targetStack.RepositionAllCells();
             } else {
-                _positionService.RepositionAllHexagons(targetStack.Cells, excludeFromIndex: startingIndex);
+                targetStack.RepositionAllCells(excludeFromIndex: startingIndex);
             }
         }
 

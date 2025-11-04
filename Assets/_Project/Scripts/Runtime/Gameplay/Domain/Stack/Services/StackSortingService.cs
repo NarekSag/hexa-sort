@@ -1,37 +1,23 @@
 using UnityEngine;
-using System.Collections.Generic;
-using System.Linq;
 using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Models;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Cell;
+using _Project.Scripts.Runtime.Gameplay.Presentation.Stack;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 
 namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
-    /// <summary>
-    /// Service that implements color sorting logic between hex stacks.
-    /// Handles Pure→Pure merges, Mixed→Pure transfers, and enforces forbidden operations.
-    /// </summary>
     public class StackSortingService {
         private readonly StackStateAnalyzer _stateAnalyzer;
         private readonly StackMergeService _mergeService;
-        private readonly StackPositionService _positionService;
-        private readonly StackColliderService _colliderService;
 
         public StackSortingService(
             StackStateAnalyzer stateAnalyzer,
-            StackMergeService mergeService,
-            StackPositionService positionService,
-            StackColliderService colliderService) {
+            StackMergeService mergeService) {
             _stateAnalyzer = stateAnalyzer;
             _mergeService = mergeService;
-            _positionService = positionService;
-            _colliderService = colliderService;
         }
 
-        /// <summary>
-        /// Checks if a cell can be transferred from source stack to target stack.
-        /// </summary>
         public bool CanTransferCell(IStack sourceStack, IStack targetStack) {
             if (sourceStack == null || targetStack == null) {
                 return false;
@@ -74,11 +60,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             // Pure → Empty: Allowed (empty stack becomes pure)
             if (sourceState == StackState.Pure && targetState == StackState.Empty) {
                 return true;
-            }
-
-            // Mixed → Empty: Not allowed (empty should only accept pure stacks)
-            if (sourceState == StackState.Mixed && targetState == StackState.Empty) {
-                return false;
             }
 
             return false;
@@ -167,21 +148,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             // Transfer to pure stack and await animation
             await AddCellToTop(pureStack, topCell, animate);
             
-            if (mixedStack != null) {
-                mixedStack.UpdateColliderSize();
-            }
-            if (pureStack != null) {
-                pureStack.UpdateColliderSize();
-            }
+            mixedStack.UpdateColliderSize();
+            pureStack.UpdateColliderSize();
 
             // Reposition cells if not animating
             if (!animate) {
-                if (mixedStack != null) {
-                    _positionService.RepositionAllHexagons(mixedStack.Cells);
-                }
-                if (pureStack != null) {
-                    _positionService.RepositionAllHexagons(pureStack.Cells);
-                }
+                mixedStack.RepositionAllCells();
+                pureStack.RepositionAllCells();
             }
 
             return true;
@@ -213,21 +186,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             await AddCellToTop(mixedStack2, topCell, animate);
 
             // Update colliders
-            if (mixedStack1 != null) {
-                mixedStack1.UpdateColliderSize();
-            }
-            if (mixedStack2 != null) {
-                mixedStack2.UpdateColliderSize();
-            }
+            mixedStack1.UpdateColliderSize();
+            mixedStack2.UpdateColliderSize();
 
             // Reposition cells if not animating
             if (!animate) {
-                if (mixedStack1 != null) {
-                    _positionService.RepositionAllHexagons(mixedStack1.Cells);
-                }
-                if (mixedStack2 != null) {
-                    _positionService.RepositionAllHexagons(mixedStack2.Cells);
-                }
+                mixedStack1.RepositionAllCells();
+                mixedStack2.RepositionAllCells();
             }
 
             return true;
@@ -335,14 +300,19 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 return;
             }
 
-            // Ensure collider service is initialized with cell size before calculating offsets
+            // Ensure stack collider is initialized with cell size before calculating offsets
             // Use the cell being added, or an existing cell from the stack
             ICell cellForSize = cell;   
             if (stack.Cells.Count > 0) {
                 cellForSize = stack.Cells[0];
             }
-            if (cellForSize != null) {
-                _colliderService.CalculateCellColliderSize(cellForSize);
+            
+            // Initialize cell collider size on stack if needed
+            if (cellForSize != null && stack is HexStack hexStack) {
+                HexStackCollider stackCollider = hexStack.GetStackCollider();
+                if (stackCollider != null && stackCollider.CellColliderSize == Vector3.zero) {
+                    stackCollider.CalculateCellColliderSize(cellForSize);
+                }
             }
 
             // Ensure cell is parented to stack
@@ -351,9 +321,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             // Add to list (top is end of list)
             stack.Cells.Add(cell);
 
-            // Calculate position
+            // Calculate position using stack's collider
             int index = stack.Cells.Count - 1;
-            float yOffset = _colliderService.CalculateYOffset(index);
+            float yOffset = stack.CalculateYOffset(index);
             Vector3 targetLocalPosition = new Vector3(0f, yOffset, 0f);
 
             if (animate) {
@@ -366,7 +336,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 if (animator != null) {
                     // Capture source position and rotation before changing parent
                     Vector3 sourceWorldPosition = cell.Transform.position;
-                    Quaternion originalRotation = cell.Transform.rotation;
                     
                     Vector3 destinationWorldPosition = stack.Transform.TransformPoint(targetLocalPosition);
                     

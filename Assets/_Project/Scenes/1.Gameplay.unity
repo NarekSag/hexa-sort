@@ -173,8 +173,9 @@ GameObject:
   m_Component:
   - component: {fileID: 348438730}
   - component: {fileID: 348438731}
+  - component: {fileID: 348438732}
   m_Layer: 0
-  m_Name: RightContainer
+  m_Name: RightSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -216,6 +217,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.9, y: 0.9, z: 0.9}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &348438732
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 348438729}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cc2db0ce94463d4ba17d95d0897e4dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Presentation.Stack.StackSpawnPoint
 --- !u!1 &507414059
 GameObject:
   m_ObjectHideFlags: 0
@@ -481,9 +494,10 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 22da5f057abe67344b12607d78a263d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Stack.HexStackBoard
-  _leftPosition: {fileID: 2091432906}
-  _middlePosition: {fileID: 1407327661}
-  _rightPosition: {fileID: 348438730}
+  _spawnPoints:
+  - {fileID: 2091432908}
+  - {fileID: 1407327663}
+  - {fileID: 348438732}
 --- !u!1 &757467429
 GameObject:
   m_ObjectHideFlags: 0
@@ -723,6 +737,7 @@ GameObject:
   - component: {fileID: 1156081327}
   - component: {fileID: 1156081326}
   - component: {fileID: 1156081328}
+  - component: {fileID: 1156081329}
   m_Layer: 0
   m_Name: GameplayScope
   m_TagString: Untagged
@@ -746,11 +761,9 @@ MonoBehaviour:
     TypeName: _Project.Scripts.Runtime.Bootstrap.DI.BootstrapScope
   autoRun: 1
   autoInjectGameObjects: []
-  _hexGridConfig: {fileID: 11400000, guid: 83b91536fb43ee640a815e4312947ea3, type: 2}
-  _hexagonAnimationConfig: {fileID: 11400000, guid: 224da094319460d4484cb615250f9f5f, type: 2}
-  _hexStackConfig: {fileID: 11400000, guid: eaee4505d1e9041e88d6d3ca35b312b4, type: 2}
   _hexStackBoard: {fileID: 690808339}
   _inputInstaller: {fileID: 1156081328}
+  _configInstaller: {fileID: 1156081329}
 --- !u!4 &1156081327
 Transform:
   m_ObjectHideFlags: 0
@@ -779,6 +792,20 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Input.DI.InputInstaller
   _dragService: {fileID: 318050882}
+--- !u!114 &1156081329
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1156081325}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: b27ca121596880141b0fa302f29a7bbe, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Infrastructure.DI.ConfigInstaller
+  _hexGridConfig: {fileID: 11400000, guid: 83b91536fb43ee640a815e4312947ea3, type: 2}
+  _hexStackConfig: {fileID: 11400000, guid: eaee4505d1e9041e88d6d3ca35b312b4, type: 2}
 --- !u!1 &1314998456
 GameObject:
   m_ObjectHideFlags: 0
@@ -900,8 +927,9 @@ GameObject:
   m_Component:
   - component: {fileID: 1407327661}
   - component: {fileID: 1407327662}
+  - component: {fileID: 1407327663}
   m_Layer: 0
-  m_Name: MiddleContainer
+  m_Name: MiddleSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -943,6 +971,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.9, y: 0.9, z: 0.9}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1407327663
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1407327660}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cc2db0ce94463d4ba17d95d0897e4dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Presentation.Stack.StackSpawnPoint
 --- !u!1 &2091432905
 GameObject:
   m_ObjectHideFlags: 0
@@ -953,8 +993,9 @@ GameObject:
   m_Component:
   - component: {fileID: 2091432906}
   - component: {fileID: 2091432907}
+  - component: {fileID: 2091432908}
   m_Layer: 0
-  m_Name: LeftContainer
+  m_Name: LeftSpawn
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -996,6 +1037,18 @@ BoxCollider:
   serializedVersion: 3
   m_Size: {x: 0.9, y: 0.9, z: 0.9}
   m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &2091432908
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2091432905}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7cc2db0ce94463d4ba17d95d0897e4dd, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Presentation.Stack.StackSpawnPoint
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

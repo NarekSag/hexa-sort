@@ -10,7 +10,7 @@ using _Project.Scripts.Runtime.Gameplay.Domain.Grid.Models;
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
     public class HexGridFactory 
     {
-        public GridController Create(HexGridConfig config, HexAnimationConfig hexagonAnimationConfig, Transform parent = null) {
+        public GridController Create(HexGridConfig config, Transform parent = null) {
             if (config == null) {
                 Debug.LogError("HexGridConfig is not assigned!");
                 return null;
@@ -32,16 +32,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
             IHexGridMapper mapper = new HexGridMapper(config.Width, config.Height);
             
             // TODO: Refactor this stack service creation logic
-            StackColliderService colliderService = new StackColliderService();
-            StackPositionService positionService = new StackPositionService(colliderService);
-            StackMergeService mergeService = new StackMergeService(colliderService, positionService);
-            
+            StackMergeService mergeService = new StackMergeService();
             StackStateAnalyzer stateAnalyzer = new StackStateAnalyzer();
             StackSortingService sortingService = new StackSortingService(
                 stateAnalyzer, 
-                mergeService, 
-                positionService, 
-                colliderService);
+                mergeService);
             
             // Create grid services
             GridNeighborService neighborService = new GridNeighborService(slotRegistry, sortingService);
