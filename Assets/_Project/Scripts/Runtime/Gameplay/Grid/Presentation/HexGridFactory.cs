@@ -3,16 +3,15 @@ using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Mappers;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services;
-using VContainer;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
 using _Project.Scripts.Runtime.Gameplay.Stack.Services;
 using _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
     public class HexGridFactory 
     {
-        [Inject] private IHexagonAnimationService _animationService;
-
-        public HexGrid Create(HexGridConfig config, Transform parent = null) {
+        public GridController Create(HexGridConfig config, HexAnimationConfig hexagonAnimationConfig, Transform parent = null) {
             if (config == null) {
                 Debug.LogError("HexGridConfig is not assigned!");
                 return null;
@@ -23,15 +22,17 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
                 return null;
             }
 
+            // Create grid container GameObject
             GameObject gridObject = new GameObject("HexGrid");
             if (parent != null) {
                 gridObject.transform.SetParent(parent);
             }
 
-            HexGrid grid = new HexGrid();
+            // Create registry and mapper
+            HexSlotRegistry slotRegistry = new HexSlotRegistry();
             IHexGridMapper mapper = new HexGridMapper(config.Width, config.Height);
             
-            //TODO: Refactor this logic
+            // TODO: Refactor this stack service creation logic
             StackColliderService colliderService = new StackColliderService();
             StackPositionService positionService = new StackPositionService(colliderService);
             StackMergeService mergeService = new StackMergeService(colliderService, positionService);
@@ -42,20 +43,62 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
                 mergeService, 
                 positionService, 
                 colliderService);
+
+            HexAnimationService animationService = new HexAnimationService(hexagonAnimationConfig);
             
-            GridNeighborService neighborService = new GridNeighborService(grid, sortingService, _animationService);
+            // Create grid services
+            GridNeighborService neighborService = new GridNeighborService(slotRegistry, sortingService, animationService);
             GridRecursionService recursionService = new GridRecursionService();
-            GridCleanupService cleanupService = new GridCleanupService(grid, sortingService, _animationService);
+            GridCleanupService cleanupService = new GridCleanupService(slotRegistry, sortingService, animationService);
             
             GridController gridController = new GridController(
-                grid, 
+                slotRegistry, 
                 neighborService,
                 recursionService,
                 cleanupService);
             
-            grid.Initialize(config, mapper, gridObject.transform, _animationService, gridController);
+            // Create all slots
+            CreateAllSlots(config, mapper, gridObject.transform, slotRegistry, gridController);
 
-            return grid;
+            return gridController;
+        }
+
+        private void CreateAllSlots(
+            HexGridConfig config, 
+            IHexGridMapper mapper, 
+            Transform gridTransform,
+            HexSlotRegistry slotRegistry,
+            GridController gridController) {
+            
+            for (int z = 0; z < config.Height; z++) {
+                for (int x = 0; x < config.Width; x++) {
+                    HexCoordinates coordinates = mapper.GetCoordinateFromOffset(x, z);
+                    Vector3 position = mapper.GetWorldPositionFromOffset(x, z);
+                    
+                    HexSlot slot = CreateSlot(config, coordinates, position, gridTransform, gridController);
+                    if (slot != null) {
+                        slotRegistry.Register(coordinates, slot);
+                    }
+                }
+            }
+        }
+
+        private HexSlot CreateSlot(
+            HexGridConfig config,
+            HexCoordinates coordinates, 
+            Vector3 position, 
+            Transform gridTransform,
+            GridController gridController) {
+            
+            if (config.SlotPrefab == null) {
+                Debug.LogError("HexStackSlot prefab is not assigned!");
+                return null;
+            }
+
+            HexSlot slot = Object.Instantiate(config.SlotPrefab, gridTransform);
+            slot.transform.localPosition = position;
+            slot.Initialize(coordinates, gridController);
+            return slot;
         }
     }
 }

@@ -13,4 +13,4 @@ MonoBehaviour:
   m_Name: HexStackConfig
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Stack.Config.HexStackConfig
   _cellPrefab: {fileID: 93956349096341290, guid: 87e872d616fe75f4a934ec442c9e477e, type: 3}
-  _availableColors: 000000000100000002000000
+  _availableColors: 0000000001000000

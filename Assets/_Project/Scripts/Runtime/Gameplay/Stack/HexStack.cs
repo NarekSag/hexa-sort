@@ -1,7 +1,6 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using _Project.Scripts.Runtime.Gameplay.Input.Drag;
 using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using _Project.Scripts.Runtime.Gameplay.Cell;
@@ -10,14 +9,16 @@ using _Project.Scripts.Runtime.Utilities.Logging;
 
 namespace _Project.Scripts.Runtime.Gameplay.Stack {
     public class HexStack : MonoBehaviour, IDraggable, IStack {
-        private List<HexCell> _hexagons = new List<HexCell>();
+        private List<ICell> _cells = new List<ICell>();
         private BoxCollider _collider;
         private StackColliderService _colliderService;
         private StackMergeService _mergeService;
         private StackPositionService _positionService;
         private bool _isDraggable = true;
+
+        private float _height = 0f;
         
-        public event Action<HexStack> OnPlaced;
+        public event Action<IStack> OnPlaced;
 
         // IStack implementation
         public Transform Transform => transform;
@@ -27,7 +28,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
             set => transform.position = value;
         }
         
-        public IList<ICell> Cells => _hexagons.Cast<ICell>().ToList();
+        public IList<ICell> Cells => _cells;
+
+        public float Height => _height;
 
         public void Initialize() 
         {
@@ -36,15 +39,17 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
                 _collider = gameObject.AddComponent<BoxCollider>();
             }
             
+            _height = _collider.bounds.size.y;
+            
             // Initialize services
             _colliderService = new StackColliderService();
             _positionService = new StackPositionService(_colliderService);
             _mergeService = new StackMergeService(_colliderService, _positionService);
             
             // Initialize collider if we have hexagons
-            if (_hexagons != null && _hexagons.Count > 0) 
+            if (_cells != null && _cells.Count > 0) 
             {
-                if (_colliderService.CalculateCellColliderSize(_hexagons[0])) 
+                if (_colliderService.CalculateCellColliderSize(_cells[0])) 
                 {
                     UpdateColliderSize();
                 }
@@ -57,7 +62,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
                 return;
             }
             
-            _colliderService.UpdateCollider(_collider, _hexagons.Count);
+            _colliderService.UpdateCollider(_collider, _cells.Count);
         }
 
         public void SetPosition(Vector3 position) {
@@ -84,16 +89,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
             OnPlaced?.Invoke(this);
         }
 
-        public List<HexCell> Hexagons => _hexagons;
-
         // IStack implementation
-        public void AddCellsFrom(IStack sourceStack, bool animate = true, IHexagonAnimationService animationService = null) {
+        public void AddCellsFrom(IStack sourceStack, bool animate = true, HexAnimationService animationService = null) {
             if (_mergeService == null) {
                 return;
             }
 
             // Store the starting index for positioning
-            int startingIndex = _hexagons.Count;
+            int startingIndex = _cells.Count;
 
             // Delegate merge logic to service
             _mergeService.MergeStacks(this, sourceStack, animate, animationService);
@@ -105,9 +108,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
             }
 
             if (!animate) {
-                _positionService.RepositionAllHexagons(_hexagons);
+                _positionService.RepositionAllCells(_cells);
             } else {
-                _positionService.RepositionAllHexagons(_hexagons, excludeFromIndex: startingIndex);
+                _positionService.RepositionAllCells(_cells, excludeFromIndex: startingIndex);
             }
         }
     }

@@ -9,15 +9,15 @@ using _Project.Scripts.Runtime.Gameplay.Stack;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
     public class GridNeighborService {
-        private readonly HexGrid _grid;
+        private readonly HexSlotRegistry _slotRegistry;
         private readonly StackSortingService _sortingService;
-        private readonly IHexagonAnimationService _animationService;
+        private readonly HexAnimationService _animationService;
 
         public GridNeighborService(
-            HexGrid grid,
+            HexSlotRegistry slotRegistry,
             StackSortingService sortingService,
-            IHexagonAnimationService animationService) {
-            _grid = grid;
+            HexAnimationService animationService) {
+            _slotRegistry = slotRegistry;
             _sortingService = sortingService;
             _animationService = animationService;
         }
@@ -27,7 +27,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
             HashSet<HexCoordinates> visitedSlots,
             HashSet<HexCoordinates> slotsThatReceivedCells) {
             
-            HexStackSlot slot = _grid?.GetSlot(slotCoordinates);
+            ISlot slot = _slotRegistry?.GetSlot(slotCoordinates);
             if (slot == null || slot.IsEmpty()) {
                 return NeighborProcessingResult.None();
             }
@@ -41,18 +41,18 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
                     continue;
                 }
 
-                HexStackSlot neighborSlot = _grid.GetSlot(neighborCoords);
+                ISlot neighborSlot = _slotRegistry.GetSlot(neighborCoords);
                 if (neighborSlot == null || neighborSlot.IsEmpty()) {
                     continue;
                 }
 
                 // Process each stack in current slot with each stack in neighbor slot
-                foreach (HexStack currentStack in slot.Stacks) {
+                foreach (IStack currentStack in slot.Stacks) {
                     if (currentStack == null || currentStack.Cells == null || currentStack.Cells.Count == 0) {
                         continue;
                     }
 
-                    foreach (HexStack neighborStack in neighborSlot.Stacks) {
+                    foreach (IStack neighborStack in neighborSlot.Stacks) {
                         if (neighborStack == null || neighborStack.Cells == null || neighborStack.Cells.Count == 0) {
                             continue;
                         }
@@ -85,14 +85,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
             HashSet<HexCoordinates> visitedSlots,
             HashSet<HexCoordinates> slotsThatReceivedCells) {
             
-            HexStackSlot slot = _grid?.GetSlot(slotCoordinates);
+            ISlot slot = _slotRegistry?.GetSlot(slotCoordinates);
             if (slot == null || slot.IsEmpty()) {
                 return false;
             }
 
             HexCoordinates[] allNeighbors = slotCoordinates.GetNeighbors();
 
-            foreach (HexStack stack in slot.Stacks) {
+            foreach (IStack stack in slot.Stacks) {
                 if (stack == null || stack.Cells == null || stack.Cells.Count == 0) {
                     continue;
                 }
@@ -103,12 +103,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
                         continue;
                     }
 
-                    HexStackSlot neighborSlot = _grid.GetSlot(neighborCoords);
+                    ISlot neighborSlot = _slotRegistry.GetSlot(neighborCoords);
                     if (neighborSlot == null || neighborSlot.IsEmpty()) {
                         continue;
                     }
 
-                    foreach (HexStack neighborStack in neighborSlot.Stacks) {
+                    foreach (IStack neighborStack in neighborSlot.Stacks) {
                         if (neighborStack == null || neighborStack.Cells == null || neighborStack.Cells.Count == 0) {
                             continue;
                         }

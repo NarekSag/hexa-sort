@@ -6,10 +6,10 @@ using _Project.Scripts.Runtime.Utilities.Logging;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Animation {
-    public class HexagonAnimationService : IHexagonAnimationService {
-        private readonly HexagonAnimationConfig _config;
+    public class HexAnimationService {
+        private readonly HexAnimationConfig _config;
 
-        public HexagonAnimationService(HexagonAnimationConfig config) {
+        public HexAnimationService(HexAnimationConfig config) {
             _config = config;
         }
 

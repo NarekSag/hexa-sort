@@ -1,28 +1,25 @@
 using UnityEngine;
 using System.Collections.Generic;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain;
 using _Project.Scripts.Runtime.Gameplay.Input.Drag;
 using _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers;
 using _Project.Scripts.Runtime.Gameplay.Stack;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
-    public class HexStackSlot : MonoBehaviour, IPlacementTarget {
-        private readonly List<HexStack> _hexStacks = new List<HexStack>();
+    public class HexSlot : MonoBehaviour, ISlot, IPlacementTarget {
+        private readonly List<IStack> _hexStacks = new List<IStack>();
         private HexCoordinates _coordinates;
         private GridController _gridController;
 
-        public IReadOnlyList<HexStack> Stacks => _hexStacks.AsReadOnly();
+        public IReadOnlyList<IStack> Stacks => _hexStacks.AsReadOnly();
 
         public void Initialize(HexCoordinates coordinates, GridController gridController) {
             _coordinates = coordinates;
             _gridController = gridController;
         }
 
-        public void SetHexStack(HexStack hexStack) {
-            SetHexStack(hexStack, checkNeighbors: true);
-        }
-
-        internal void SetHexStack(HexStack hexStack, bool checkNeighbors) {
+        public void SetStack(IStack hexStack, bool checkNeighbors) {
             if (hexStack == null) return;
             
             if (!_hexStacks.Contains(hexStack)) {
@@ -30,7 +27,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
                 bool slotWasEmpty = _hexStacks.Count == 0;
                 
                 _hexStacks.Add(hexStack);
-                hexStack.transform.SetParent(transform);
+                hexStack.SetParent(transform);
                 
                 // Notify the source board that this stack was placed (for refilling)
                 hexStack.NotifyPlaced();
@@ -52,6 +49,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
         }
 
         public bool IsEmpty() {
+            // Clean up null or empty stacks before checking
+            _hexStacks.RemoveAll(stack => stack == null || stack.Cells.Count == 0);
             return _hexStacks.Count == 0;
         }
 
@@ -63,32 +62,21 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             }
 
             // Calculate Y offset based on stacked stacks above
+            // Only count non-empty stacks
             float totalHeight = 0f;
             for (int i = 0; i < stackIndex; i++) {
-                if (i < _hexStacks.Count) {
-                    float stackHeight = GetStackHeight(_hexStacks[i]);
-                    totalHeight += stackHeight;
+                if (i < _hexStacks.Count && _hexStacks[i] != null && _hexStacks[i].Cells.Count > 0) {
+                    totalHeight += _hexStacks[i].Height;
                 }
             }
 
             return basePosition + Vector3.up * totalHeight;
         }
 
-        private float GetStackHeight(HexStack stack) {
-            // Use collider size to get the height of the stack (size is in local space, not world)
-            Collider stackCollider = stack.GetComponent<Collider>();
-            if (stackCollider != null) {
-                return stackCollider.bounds.size.y;
-            }
-
-            // Fallback: use a default height if no collider
-            return 1f;
-        }
-
         public bool CanAccept(IDraggable draggable, out Vector3 targetPosition) {
             targetPosition = transform.position;
 
-            if (!(draggable is HexStack hexStack)) {
+            if (!(draggable is IStack hexStack)) {
                 return false;
             }
 
@@ -96,6 +84,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation {
             if (_hexStacks.Contains(hexStack)) {
                 return false;
             }
+
+            // Clean up null or empty stacks before calculating position
+            _hexStacks.RemoveAll(stack => stack == null || stack.Cells.Count == 0);
 
             // Calculate position for the new stack (on top of existing stacks)
             int newStackIndex = _hexStacks.Count;

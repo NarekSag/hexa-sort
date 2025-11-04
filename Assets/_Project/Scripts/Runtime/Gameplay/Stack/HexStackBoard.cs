@@ -11,7 +11,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
         
         [Inject] private readonly HexStackFactory _stackFactory;
         
-        private readonly Dictionary<HexStack, Transform> _trackedStacks = new Dictionary<HexStack, Transform>();
+        private readonly Dictionary<IStack, Transform> _trackedStacks = new Dictionary<IStack, Transform>();
         
         private void Start() {
             CreateInitialStacks();
@@ -37,16 +37,16 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack {
         }
         
         private void CreateStackAt(Transform position) {
-            HexStack stack = _stackFactory.CreateRandomStack(position, position.position);
+            IStack stack = _stackFactory.CreateRandomStack(position, position.position);
             TrackStack(stack, position);
         }
         
-        private void TrackStack(HexStack stack, Transform position) {
+        private void TrackStack(IStack stack, Transform position) {
             _trackedStacks[stack] = position;
             stack.OnPlaced += OnStackPlaced;
         }
         
-        private void OnStackPlaced(HexStack placedStack) {
+        private void OnStackPlaced(IStack placedStack) {
             if (_trackedStacks.TryGetValue(placedStack, out Transform position)) {
                 placedStack.OnPlaced -= OnStackPlaced;
                 _trackedStacks.Remove(placedStack);

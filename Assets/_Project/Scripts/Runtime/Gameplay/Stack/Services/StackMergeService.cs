@@ -14,7 +14,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
             _positionService = positionService;
         }
 
-        public void MergeStacks(IStack targetStack, IStack sourceStack, bool animate = true, IHexagonAnimationService animationService = null) {
+        public void MergeStacks(IStack targetStack, IStack sourceStack, bool animate = true, HexAnimationService animationService = null) {
             if (targetStack == null || sourceStack == null || targetStack == sourceStack) {
                 return;
             }
@@ -85,16 +85,15 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
                 }
             }
 
-            if (targetStack is HexStack targetHexStack) {
-                foreach (ICell cell in cellsToMerge) {
-                    if (cell is HexCell hexCell && !targetHexStack.Hexagons.Contains(hexCell)) {
-                        targetHexStack.Hexagons.Add(hexCell);
-                    }
+            foreach (ICell cell in cellsToMerge) 
+            {
+                if (!targetStack.Cells.Contains(cell)) {
+                        targetStack.Cells.Add(cell);
                 }
             }
 
-            if (sourceStack is HexStack sourceHexStack) {
-                sourceHexStack.Hexagons.Clear();
+            if (sourceStack is IStack sourceHexStack) {
+                sourceHexStack.Cells.Clear();
             }
         }
     }

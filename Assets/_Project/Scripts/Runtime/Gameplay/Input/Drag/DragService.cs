@@ -4,6 +4,7 @@ using _Project.Scripts.Runtime.Gameplay.Input.PositionCalculation;
 using _Project.Scripts.Runtime.Gameplay.Input.Raycast;
 using _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
 using _Project.Scripts.Runtime.Gameplay.Stack;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain;
 
 namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
     public class DragService : MonoBehaviour {
@@ -80,9 +81,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Input.Drag {
                         _currentDraggable.SetPosition(targetPosition);
                         
                         // Register the stack with the slot if it's a HexStackSlot
-                        if (placementTarget is HexStackSlot slot && _currentDraggable is HexStack stack)
+                        if (placementTarget is ISlot slot && _currentDraggable is IStack stack)
                         {
-                            slot.SetHexStack(stack);
+                            slot.SetStack(stack);
                         }
                     }
                     else

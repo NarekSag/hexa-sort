@@ -14,7 +14,7 @@ namespace _Project.Scripts.Runtime.Gameplay.DI
     public class GameplayScope : LifetimeScope
     {
         [SerializeField] private HexGridConfig _hexGridConfig;
-        [SerializeField] private HexagonAnimationConfig _hexagonAnimationConfig;
+        [SerializeField] private HexAnimationConfig _hexagonAnimationConfig;
         [SerializeField] private HexStackConfig _hexStackConfig;
         [SerializeField] private HexStackBoard _hexStackBoard;
         [SerializeField] private InputInstaller _inputInstaller;
@@ -37,14 +37,8 @@ namespace _Project.Scripts.Runtime.Gameplay.DI
 
         private void RegisterServices(IContainerBuilder builder)
         {
-            // Grid Services
             builder.Register<HexGridFactory>(Lifetime.Scoped);
-            
-            // Stack Services
             builder.Register<HexStackFactory>(Lifetime.Scoped);
-            
-            // Animation Services
-            builder.Register<IHexagonAnimationService, HexagonAnimationService>(Lifetime.Scoped);
         }
 
         private void RegisterComponents(IContainerBuilder builder)

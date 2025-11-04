@@ -30,13 +30,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
         }
 
         // Legacy method - kept for backward compatibility during transition
-        public void RepositionAllHexagons(List<HexCell> hexagons, int? excludeFromIndex = null) {
-            if (hexagons == null) {
+        public void RepositionAllHexagons(IList<ICell> cells, int? excludeFromIndex = null) {
+            if (cells == null) {
                 return;
             }
 
-            var cells = new List<ICell>(hexagons.Count);
-            foreach (var hex in hexagons) {
+            foreach (var hex in cells) {
                 if (hex != null) {
                     cells.Add(hex);
                 }

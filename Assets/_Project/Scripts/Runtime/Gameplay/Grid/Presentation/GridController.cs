@@ -2,20 +2,21 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
     public class GridController {
-        private readonly HexGrid _grid;
+        private readonly HexSlotRegistry _slotRegistry;
         private readonly GridNeighborService _neighborService;
         private readonly GridRecursionService _recursionService;
         private readonly GridCleanupService _cleanupService;
 
         public GridController(
-            HexGrid grid, 
+            HexSlotRegistry slotRegistry, 
             GridNeighborService neighborService,
             GridRecursionService recursionService,
             GridCleanupService cleanupService) {
-            _grid = grid;
+            _slotRegistry = slotRegistry;
             _neighborService = neighborService;
             _recursionService = recursionService;
             _cleanupService = cleanupService;
@@ -38,7 +39,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
                 return;
             }
 
-            HexStackSlot slot = _grid?.GetSlot(slotCoordinates);
+            ISlot slot = _slotRegistry?.GetSlot(slotCoordinates);
             if (slot == null || slot.IsEmpty()) {
                 return;
             }
@@ -76,7 +77,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Presentation.Controllers {
                 neighborResult.SlotsToRecheck.Add(slotCoordinates);
                 HexCoordinates[] allNeighbors = slotCoordinates.GetNeighbors();
                 foreach (HexCoordinates neighborCoords in allNeighbors) {
-                    HexStackSlot neighborSlot = _grid.GetSlot(neighborCoords);
+                    ISlot neighborSlot = _slotRegistry.GetSlot(neighborCoords);
                     if (neighborSlot != null && !neighborSlot.IsEmpty()) {
                         neighborResult.SlotsToRecheck.Add(neighborCoords);
                     }

@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
-using _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
 using _Project.Scripts.Runtime.Gameplay.Stack.Services;
 using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using _Project.Scripts.Runtime.Gameplay.Stack;
@@ -10,21 +9,21 @@ using _Project.Scripts.Runtime.Gameplay.Cell;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
     public class GridCleanupService {
-        private readonly HexGrid _grid;
+        private readonly HexSlotRegistry _slotRegistry;
         private readonly StackSortingService _sortingService;
-        private readonly IHexagonAnimationService _animationService;
+        private readonly HexAnimationService _animationService;
 
         public GridCleanupService(
-            HexGrid grid,
+            HexSlotRegistry slotRegistry,
             StackSortingService sortingService,
-            IHexagonAnimationService animationService) {
-            _grid = grid;
+            HexAnimationService animationService) {
+            _slotRegistry = slotRegistry;
             _sortingService = sortingService;
             _animationService = animationService;
         }
 
         public async UniTask ProcessPureMerges(HashSet<HexCoordinates> affectedSlots) {
-            if (_grid == null || affectedSlots == null || affectedSlots.Count == 0) {
+            if (_slotRegistry == null || affectedSlots == null || affectedSlots.Count == 0) {
                 return;
             }
 
@@ -36,7 +35,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
                 anyPureMergesOccurred = false;
 
                 foreach (HexCoordinates coordsToCheck in affectedSlots) {
-                    HexStackSlot slotToCheck = _grid.GetSlot(coordsToCheck);
+                    ISlot slotToCheck = _slotRegistry.GetSlot(coordsToCheck);
                     if (slotToCheck == null || slotToCheck.IsEmpty()) {
                         continue;
                     }
@@ -44,19 +43,19 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
                     // Get neighbors of this slot
                     HexCoordinates[] neighbors = coordsToCheck.GetNeighbors();
 
-                    foreach (HexStack stack in slotToCheck.Stacks) {
+                    foreach (IStack stack in slotToCheck.Stacks) {
                         if (stack == null || stack.Cells == null || stack.Cells.Count == 0) {
                             continue;
                         }
 
                         // Check each neighbor
                         foreach (HexCoordinates neighborCoords in neighbors) {
-                            HexStackSlot neighborSlot = _grid.GetSlot(neighborCoords);
+                            ISlot neighborSlot = _slotRegistry.GetSlot(neighborCoords);
                             if (neighborSlot == null || neighborSlot.IsEmpty()) {
                                 continue;
                             }
 
-                            foreach (HexStack neighborStack in neighborSlot.Stacks) {
+                            foreach (IStack neighborStack in neighborSlot.Stacks) {
                                 if (neighborStack == null || neighborStack.Cells == null || neighborStack.Cells.Count == 0) {
                                     continue;
                                 }
@@ -91,11 +90,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
         }
 
         public async UniTask CheckAndClearStacksWithTenPlusCells(HexCoordinates slotCoordinates) {
-            if (_grid == null) {
+            if (_slotRegistry == null) {
                 return;
             }
 
-            HexStackSlot slot = _grid.GetSlot(slotCoordinates);
+            ISlot slot = _slotRegistry.GetSlot(slotCoordinates);
             if (slot == null || slot.IsEmpty()) {
                 return;
             }
@@ -104,9 +103,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
             await UniTask.Yield();
 
             // Check all stacks in the slot
-            var stacksToClear = new List<HexStack>();
+            var stacksToClear = new List<IStack>();
 
-            foreach (HexStack stack in slot.Stacks) {
+            foreach (IStack stack in slot.Stacks) {
                 if (stack == null) {
                     continue;
                 }
@@ -123,20 +122,20 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Services {
             }
 
             // Destroy all cells in stacks with 10+ cells, then destroy the stack GameObjects
-            foreach (HexStack stackToClear in stacksToClear) {
+            foreach (IStack stackToClear in stacksToClear) {
                 // Destroy all cells in the stack
-                if (stackToClear.Hexagons != null) {
-                    foreach (HexCell cell in stackToClear.Hexagons) {
-                        if (cell != null && cell.gameObject != null) {
-                            Object.Destroy(cell.gameObject);
+                if (stackToClear.Cells != null) {
+                    foreach (ICell cell in stackToClear.Cells) {
+                        if (cell != null && cell.Transform.gameObject != null) {
+                            Object.Destroy(cell.Transform.gameObject);
                         }
                     }
-                    stackToClear.Hexagons.Clear();
+                    stackToClear.Cells.Clear();
                 }
 
                 // Destroy the stack GameObject
-                if (stackToClear.gameObject != null) {
-                    Object.Destroy(stackToClear.gameObject);
+                if (stackToClear.Transform.gameObject != null) {
+                    Object.Destroy(stackToClear.Transform.gameObject);
                 }
             }
 

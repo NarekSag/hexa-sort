@@ -10,7 +10,7 @@ MonoBehaviour:
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: 11500000, guid: 42b0f56c968c78649b1bb7498e971936, type: 3}
-  m_Name: HexagonAnimationConfig
+  m_Name: HexAnimationConfig
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Grid.Domain.Config.HexagonAnimationConfig
   _jumpPower: 1
   _jumpDuration: 0.5

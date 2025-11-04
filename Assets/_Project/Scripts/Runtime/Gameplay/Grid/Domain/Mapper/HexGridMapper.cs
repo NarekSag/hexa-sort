@@ -2,15 +2,20 @@ using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Grid.Domain.Models;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Mappers {
+    /// <summary>
+    /// Maps between grid coordinates, offset coordinates, and world positions.
+    /// </summary>
     public class HexGridMapper : IHexGridMapper {
-        public HexGridData GridData { get; private set; }
+        private readonly int _width;
+        private readonly int _height;
 
         public HexGridMapper(int width, int height) {
-            GridData = new HexGridData(width, height);
+            _width = width;
+            _height = height;
         }
 
-        public bool IsValidCoordinate(HexCoordinates coordinates) {
-            return GridData.IsValidCoordinate(coordinates);
+        public bool IsValidCoordinate(int x, int z) {
+            return x >= 0 && x < _width && z >= 0 && z < _height;
         }
 
         public HexCoordinates GetCoordinateFromOffset(int x, int z) {
@@ -18,16 +23,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Mappers {
         }
 
         public Vector3 GetCenteringOffset() {
-            int width = GridData.Width;
-            int height = GridData.Height;
-            
             // Calculate grid bounds
             // Max X: rightmost cell position (accounting for odd row offset)
-            float maxX = ((width - 1) + (height - 1) * 0.5f - (height - 1) / 2) * (HexMetrics.InnerRadius * 2f);
+            float maxX = ((_width - 1) + (_height - 1) * 0.5f - (_height - 1) / 2) * (HexMetrics.InnerRadius * 2f);
             float minX = 0f;
             
             // Max Z: topmost cell position
-            float maxZ = (height - 1) * (HexMetrics.OuterRadius * 1.5f);
+            float maxZ = (_height - 1) * (HexMetrics.OuterRadius * 1.5f);
             float minZ = 0f;
             
             // Calculate center offset (negative to shift grid to center)

@@ -6,11 +6,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config {
     public class HexGridConfig : ScriptableObject {
         [SerializeField] private int _width = 6;
         [SerializeField] private int _height = 6;
-        [SerializeField] private HexStackSlot _slotPrefab;
+        [SerializeField] private HexSlot _slotPrefab;
 
         public int Width => _width;
         public int Height => _height;
-        public HexStackSlot SlotPrefab => _slotPrefab;
+        public HexSlot SlotPrefab => _slotPrefab;
 
         public bool IsValid() {
             return _slotPrefab != null && _width > 0 && _height > 0;

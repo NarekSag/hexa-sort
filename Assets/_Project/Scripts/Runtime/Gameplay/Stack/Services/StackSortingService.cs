@@ -128,7 +128,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
         /// <summary>
         /// Executes a pure-to-pure merge. All cells from right stack move to left stack.
         /// </summary>
-        public async UniTask ExecutePureToPureMerge(IStack leftStack, IStack rightStack, IHexagonAnimationService animationService) {
+        public async UniTask ExecutePureToPureMerge(IStack leftStack, IStack rightStack, HexAnimationService animationService) {
             if (leftStack == null || rightStack == null) {
                 return;
             }
@@ -144,19 +144,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
                 _mergeService.MergeStacks(leftStack, rightStack, false, null);
             }
 
-            // Update colliders if stacks are HexStack
-            if (leftStack is HexStack leftHexStack) {
-                leftHexStack.UpdateColliderSize();
-            }
-            if (rightStack is HexStack rightHexStack) {
-                rightHexStack.UpdateColliderSize();
-            }
+            leftStack.UpdateColliderSize();
+            rightStack.UpdateColliderSize();
         }
         
         /// <summary>
         /// Helper method to merge stacks with animation and await completion.
         /// </summary>
-        private async UniTask MergeStacksWithAnimation(IStack targetStack, IStack sourceStack, IHexagonAnimationService animationService) {
+        private async UniTask MergeStacksWithAnimation(IStack targetStack, IStack sourceStack, HexAnimationService animationService) {
             if (targetStack == null || sourceStack == null || targetStack == sourceStack) {
                 return;
             }
@@ -218,18 +213,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
                 );
             }
 
-            // Update stack lists
-            if (targetStack is HexStack targetHexStack) {
-                foreach (ICell cell in cellsToMerge) {
-                    if (cell is HexCell hexCell && !targetHexStack.Hexagons.Contains(hexCell)) {
-                        targetHexStack.Hexagons.Add(hexCell);
-                    }
+            foreach (ICell cell in cellsToMerge) 
+            {
+                if (!targetStack.Cells.Contains(cell)) {
+                        targetStack.Cells.Add(cell);
                 }
             }
 
-            if (sourceStack is HexStack sourceHexStack) {
-                sourceHexStack.Hexagons.Clear();
-            }
+            sourceStack.Cells.Clear();
         }
 
         /// <summary>
@@ -238,7 +229,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
         /// The recursive re-checking system will handle subsequent transfers.
         /// </summary>
         /// <returns>True if a transfer occurred, false otherwise.</returns>
-        public async UniTask<bool> ExecuteMixedToPureTransfer(IStack mixedStack, IStack pureStack, IHexagonAnimationService animationService) {
+        public async UniTask<bool> ExecuteMixedToPureTransfer(IStack mixedStack, IStack pureStack, HexAnimationService animationService) {
             if (mixedStack == null || pureStack == null) {
                 return false;
             }
@@ -251,32 +242,28 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
             bool animate = animationService != null;
 
             // Transfer only ONE cell (step-by-step behavior)
-            HexCell topCell = RemoveTopCell(mixedStack);
+            ICell topCell = RemoveTopCell(mixedStack);
             if (topCell == null) {
                 return false;
             }
 
             // Transfer to pure stack and await animation
             await AddCellToTop(pureStack, topCell, animate, animationService);
-
-            // Update colliders
-            HexStack mixedHexStack = mixedStack as HexStack;
-            HexStack pureHexStack = pureStack as HexStack;
             
-            if (mixedHexStack != null) {
-                mixedHexStack.UpdateColliderSize();
+            if (mixedStack != null) {
+                mixedStack.UpdateColliderSize();
             }
-            if (pureHexStack != null) {
-                pureHexStack.UpdateColliderSize();
+            if (pureStack != null) {
+                pureStack.UpdateColliderSize();
             }
 
             // Reposition cells if not animating
             if (!animate) {
-                if (mixedHexStack != null) {
-                    _positionService.RepositionAllHexagons(mixedHexStack.Hexagons);
+                if (mixedStack != null) {
+                    _positionService.RepositionAllHexagons(mixedStack.Cells);
                 }
-                if (pureHexStack != null) {
-                    _positionService.RepositionAllHexagons(pureHexStack.Hexagons);
+                if (pureStack != null) {
+                    _positionService.RepositionAllHexagons(pureStack.Cells);
                 }
             }
 
@@ -289,7 +276,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
         /// The recursive re-checking system will handle subsequent transfers.
         /// </summary>
         /// <returns>True if a transfer occurred, false otherwise.</returns>
-        public async UniTask<bool> ExecuteMixedToMixedTransfer(IStack mixedStack1, IStack mixedStack2, IHexagonAnimationService animationService) {
+        public async UniTask<bool> ExecuteMixedToMixedTransfer(IStack mixedStack1, IStack mixedStack2, HexAnimationService animationService) {
             if (mixedStack1 == null || mixedStack2 == null) {
                 return false;
             }
@@ -302,7 +289,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
             bool animate = animationService != null;
 
             // Transfer only ONE cell (step-by-step behavior)
-            HexCell topCell = RemoveTopCell(mixedStack1);
+            ICell topCell = RemoveTopCell(mixedStack1);
             if (topCell == null) {
                 return false;
             }
@@ -311,23 +298,20 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
             await AddCellToTop(mixedStack2, topCell, animate, animationService);
 
             // Update colliders
-            HexStack hexStack1 = mixedStack1 as HexStack;
-            HexStack hexStack2 = mixedStack2 as HexStack;
-            
-            if (hexStack1 != null) {
-                hexStack1.UpdateColliderSize();
+            if (mixedStack1 != null) {
+                mixedStack1.UpdateColliderSize();
             }
-            if (hexStack2 != null) {
-                hexStack2.UpdateColliderSize();
+            if (mixedStack2 != null) {
+                mixedStack2.UpdateColliderSize();
             }
 
             // Reposition cells if not animating
             if (!animate) {
-                if (hexStack1 != null) {
-                    _positionService.RepositionAllHexagons(hexStack1.Hexagons);
+                if (mixedStack1 != null) {
+                    _positionService.RepositionAllHexagons(mixedStack1.Cells);
                 }
-                if (hexStack2 != null) {
-                    _positionService.RepositionAllHexagons(hexStack2.Hexagons);
+                if (mixedStack2 != null) {
+                    _positionService.RepositionAllHexagons(mixedStack2.Cells);
                 }
             }
 
@@ -337,7 +321,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
         /// <summary>
         /// Main entry point for processing two stacks. Analyzes states and executes appropriate sorting logic.
         /// </summary>
-        public async UniTask<SortingResult> ProcessStackPair(IStack leftStack, IStack rightStack, IHexagonAnimationService animationService) {
+        public async UniTask<SortingResult> ProcessStackPair(IStack leftStack, IStack rightStack, HexAnimationService animationService) {
             if (leftStack == null || rightStack == null) {
                 return SortingResult.None();
             }
@@ -410,19 +394,15 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
         /// <summary>
         /// Removes and returns the topmost cell from a stack.
         /// </summary>
-        private HexCell RemoveTopCell(IStack stack) {
-            if (stack is not HexStack hexStack) {
-                return null;
-            }
-
-            if (hexStack.Hexagons == null || hexStack.Hexagons.Count == 0) {
+        private ICell RemoveTopCell(IStack stack) {
+            if (stack.Cells == null || stack.Cells.Count == 0) {
                 return null;
             }
 
             // Top cell is the last one in the list
-            int lastIndex = hexStack.Hexagons.Count - 1;
-            HexCell topCell = hexStack.Hexagons[lastIndex];
-            hexStack.Hexagons.RemoveAt(lastIndex);
+            int lastIndex = stack.Cells.Count - 1;
+            ICell topCell = stack.Cells[lastIndex];
+            stack.Cells.RemoveAt(lastIndex);
 
             return topCell;
         }
@@ -430,38 +410,34 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
         /// <summary>
         /// Adds a cell to the top of a stack.
         /// </summary>
-        private async UniTask AddCellToTop(IStack stack, HexCell cell, bool animate, IHexagonAnimationService animationService) {
+        private async UniTask AddCellToTop(IStack stack, ICell cell, bool animate, HexAnimationService animationService) {
             if (stack == null || cell == null) {
                 return;
             }
 
-            if (stack is not HexStack hexStack) {
-                return;
-            }
-
             // Ensure Hexagons list exists
-            if (hexStack.Hexagons == null) {
+            if (stack.Cells == null) {
                 return;
             }
 
             // Ensure collider service is initialized with cell size before calculating offsets
             // Use the cell being added, or an existing cell from the stack
-            ICell cellForSize = cell;
-            if (hexStack.Hexagons.Count > 0) {
-                cellForSize = hexStack.Hexagons[0];
+            ICell cellForSize = cell;   
+            if (stack.Cells.Count > 0) {
+                cellForSize = stack.Cells[0];
             }
             if (cellForSize != null) {
                 _colliderService.CalculateCellColliderSize(cellForSize);
             }
 
             // Ensure cell is parented to stack
-            cell.Transform.SetParent(hexStack.Transform);
+            cell.Transform.SetParent(stack.Transform);
 
             // Add to list (top is end of list)
-            hexStack.Hexagons.Add(cell);
+            stack.Cells.Add(cell);
 
             // Calculate position
-            int index = hexStack.Hexagons.Count - 1;
+            int index = stack.Cells.Count - 1;
             float yOffset = _colliderService.CalculateYOffset(index);
             Vector3 targetLocalPosition = new Vector3(0f, yOffset, 0f);
 
@@ -471,8 +447,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Services {
                 var targetPositions = new List<Vector3> { targetLocalPosition };
                 await animationService.AnimateHexagonStackMerge(
                     cellTransforms,
-                    hexStack.Transform, // source (cell's current parent)
-                    hexStack.Transform, // target
+                    stack.Transform, // source (cell's current parent)
+                    stack.Transform, // target
                     targetPositions
                 );
             } else {

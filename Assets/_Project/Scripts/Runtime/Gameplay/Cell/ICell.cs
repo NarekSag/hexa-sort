@@ -20,6 +20,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Cell {
         /// Gets the color type of this cell.
         /// </summary>
         ColorType ColorType { get; }
+
+        /// <summary>
+        /// Initializes the cell with its color type and index.
+        /// </summary>
+        void Initialize(ColorType colorType, int index);
     }
 }
 

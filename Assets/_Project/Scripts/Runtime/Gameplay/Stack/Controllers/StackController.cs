@@ -2,30 +2,30 @@ using System.Collections.Generic;
 using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Grid.Animation;
 using _Project.Scripts.Runtime.Gameplay.Stack.Services;
-using _Project.Scripts.Runtime.Gameplay.Grid.Presentation;
+using _Project.Scripts.Runtime.Gameplay.Grid.Domain;
 
 namespace _Project.Scripts.Runtime.Gameplay.Stack.Controllers {
     public class StackController {
         private readonly StackMergeService _mergeService;
         private readonly StackPositionService _positionService;
-        private readonly IHexagonAnimationService _animationService;
+        private readonly HexAnimationService _animationService;
 
         public StackController(
             StackMergeService mergeService,
             StackPositionService positionService,
-            IHexagonAnimationService animationService) {
+            HexAnimationService animationService) {
             _mergeService = mergeService;
             _positionService = positionService;
             _animationService = animationService;
         }
 
-        public void MergeStacks(HexStack targetStack, HexStack sourceStack, bool animate = true) {
+        public void MergeStacks(IStack targetStack, IStack sourceStack, bool animate = true) {
             if (targetStack == null || sourceStack == null || targetStack == sourceStack) {
                 return;
             }
 
             // Store the starting index for positioning
-            int startingIndex = targetStack.Hexagons.Count;
+            int startingIndex = targetStack.Cells.Count;
 
             // Use the service to perform the merge
             IStack targetStackInterface = targetStack;
@@ -41,13 +41,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Controllers {
 
             // Reposition cells if not animating
             if (!animate) {
-                _positionService.RepositionAllHexagons(targetStack.Hexagons);
+                _positionService.RepositionAllHexagons(targetStack.Cells);
             } else {
-                _positionService.RepositionAllHexagons(targetStack.Hexagons, excludeFromIndex: startingIndex);
+                _positionService.RepositionAllHexagons(targetStack.Cells, excludeFromIndex: startingIndex);
             }
         }
 
-        public void MergeSlots(HexStackSlot targetSlot, HexStackSlot sourceSlot) {
+        public void MergeSlots(ISlot targetSlot, ISlot sourceSlot) {
             if (targetSlot == null || sourceSlot == null || targetSlot == sourceSlot) {
                 return;
             }
@@ -56,34 +56,34 @@ namespace _Project.Scripts.Runtime.Gameplay.Stack.Controllers {
                 return;
             }
 
-            var stacksToMerge = new List<HexStack>(sourceSlot.Stacks);
+            var stacksToMerge = new List<IStack>(sourceSlot.Stacks);
 
             // If target slot has stacks, merge into the first one
             if (!targetSlot.IsEmpty()) {
-                HexStack targetStack = targetSlot.Stacks[0];
+                IStack targetStack = targetSlot.Stacks[0];
 
-                foreach (HexStack sourceStack in stacksToMerge) {
+                foreach (IStack sourceStack in stacksToMerge) {
                     if (sourceStack != null) {
                         bool animate = _animationService != null;
                         MergeStacks(targetStack, sourceStack, animate);
 
                         // Destroy the empty stack (with delay if animating)
-                        if (sourceStack.Hexagons.Count == 0) {
+                        if (sourceStack.Cells.Count == 0) {
                             if (_animationService != null) {
                                 // Delay destruction to allow animation to complete
-                                Object.Destroy(sourceStack.gameObject, 0.3f);
+                                Object.Destroy(sourceStack.Transform.gameObject, 0.3f);
                             } else {
-                                Object.Destroy(sourceStack.gameObject);
+                                Object.Destroy(sourceStack.Transform.gameObject);
                             }
                         }
                     }
                 }
             } else {
                 // If target slot is empty, move the entire stacks to target slot
-                foreach (HexStack stack in stacksToMerge) {
+                foreach (IStack stack in stacksToMerge) {
                     if (stack != null) {
                         // Add stack without triggering neighbor checks (since we're already merging)
-                        targetSlot.SetHexStack(stack, checkNeighbors: false);
+                        targetSlot.SetStack(stack, checkNeighbors: false);
                     }
                 }
             }

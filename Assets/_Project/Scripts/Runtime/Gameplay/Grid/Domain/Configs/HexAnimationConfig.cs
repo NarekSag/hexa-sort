@@ -2,8 +2,8 @@ using UnityEngine;
 using DG.Tweening;
 
 namespace _Project.Scripts.Runtime.Gameplay.Grid.Domain.Config {
-    [CreateAssetMenu(fileName = "HexagonAnimationConfig", menuName = "Gameplay/Grid/Hexagon Animation Config")]
-    public class HexagonAnimationConfig : ScriptableObject {
+    [CreateAssetMenu(fileName = "HexAnimationConfig", menuName = "Gameplay/Grid/Hex Animation Config")]
+    public class HexAnimationConfig : ScriptableObject {
         [SerializeField] private float _jumpPower = 1f;
         [SerializeField] private float _jumpDuration = 0.5f;
         [SerializeField] private float _rotationDuration = 0.5f;
