@@ -1,11 +1,10 @@
-using _Project.Scripts.Runtime.Gameplay.Presentation.Animation;
 using UnityEngine;
+using _Project.Scripts.Runtime.Gameplay.Config;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
-using _Project.Scripts.Runtime.Gameplay.Config;
 using _Project.Scripts.Runtime.Gameplay.Domain.Grid.Models;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
@@ -43,13 +42,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
                 mergeService, 
                 positionService, 
                 colliderService);
-
-            HexAnimationService animationService = new HexAnimationService(hexagonAnimationConfig);
             
             // Create grid services
-            GridNeighborService neighborService = new GridNeighborService(slotRegistry, sortingService, animationService);
+            GridNeighborService neighborService = new GridNeighborService(slotRegistry, sortingService);
             GridRecursionService recursionService = new GridRecursionService();
-            GridCleanupService cleanupService = new GridCleanupService(slotRegistry, sortingService, animationService);
+            GridCleanupService cleanupService = new GridCleanupService(slotRegistry, sortingService);
             
             GridController gridController = new GridController(
                 slotRegistry, 

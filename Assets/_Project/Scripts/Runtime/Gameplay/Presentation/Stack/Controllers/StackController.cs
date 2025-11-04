@@ -1,6 +1,6 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using UnityEngine;
-using _Project.Scripts.Runtime.Gameplay.Presentation.Animation;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
 
@@ -8,18 +8,15 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack.Controllers {
     public class StackController {
         private readonly StackMergeService _mergeService;
         private readonly StackPositionService _positionService;
-        private readonly HexAnimationService _animationService;
 
         public StackController(
             StackMergeService mergeService,
-            StackPositionService positionService,
-            HexAnimationService animationService) {
+            StackPositionService positionService) {
             _mergeService = mergeService;
             _positionService = positionService;
-            _animationService = animationService;
         }
 
-        public void MergeStacks(IStack targetStack, IStack sourceStack, bool animate = true) {
+        public async UniTask MergeStacks(IStack targetStack, IStack sourceStack, bool animate = true) {
             if (targetStack == null || sourceStack == null || targetStack == sourceStack) {
                 return;
             }
@@ -27,11 +24,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack.Controllers {
             // Store the starting index for positioning
             int startingIndex = targetStack.Cells.Count;
 
-            // Use the service to perform the merge
-            IStack targetStackInterface = targetStack;
-            IStack sourceStackInterface = sourceStack;
-            
-            _mergeService.MergeStacks(targetStackInterface, sourceStackInterface, animate, _animationService);
+            // Use the service to perform the merge (now async)
+            await _mergeService.MergeStacks(targetStack, sourceStack, animate);
 
             // Update collider sizes
             targetStack.UpdateColliderSize();
@@ -47,7 +41,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack.Controllers {
             }
         }
 
-        public void MergeSlots(ISlot targetSlot, ISlot sourceSlot) {
+        public async UniTask MergeSlots(ISlot targetSlot, ISlot sourceSlot) {
             if (targetSlot == null || sourceSlot == null || targetSlot == sourceSlot) {
                 return;
             }
@@ -64,17 +58,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack.Controllers {
 
                 foreach (IStack sourceStack in stacksToMerge) {
                     if (sourceStack != null) {
-                        bool animate = _animationService != null;
-                        MergeStacks(targetStack, sourceStack, animate);
+                        await MergeStacks(targetStack, sourceStack, animate: true);
 
-                        // Destroy the empty stack (with delay if animating)
+                        // Destroy the empty stack (with delay to allow animation to complete)
                         if (sourceStack.Cells.Count == 0) {
-                            if (_animationService != null) {
-                                // Delay destruction to allow animation to complete
-                                Object.Destroy(sourceStack.Transform.gameObject, 0.3f);
-                            } else {
-                                Object.Destroy(sourceStack.Transform.gameObject);
-                            }
+                            Object.Destroy(sourceStack.Transform.gameObject, 0.3f);
                         }
                     }
                 }

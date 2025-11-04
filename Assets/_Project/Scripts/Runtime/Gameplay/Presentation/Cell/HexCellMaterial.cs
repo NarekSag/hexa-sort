@@ -4,12 +4,12 @@ using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Config;
 
 namespace _Project.Scripts.Runtime.Gameplay.Presentation.Cell {
-    public class HexCellMaterialController {
+    public class HexCellMaterial {
         private readonly GameObject _gameObject;
         private readonly ColorMaterialConfig _colorMaterialConfig;
         private MeshRenderer _meshRenderer;
         
-        public HexCellMaterialController(GameObject gameObject, ColorMaterialConfig colorMaterialConfig) {
+        public HexCellMaterial(GameObject gameObject, ColorMaterialConfig colorMaterialConfig) {
             _gameObject = gameObject;
             _colorMaterialConfig = colorMaterialConfig;
         }

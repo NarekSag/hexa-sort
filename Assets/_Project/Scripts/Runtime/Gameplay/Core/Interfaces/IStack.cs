@@ -1,7 +1,5 @@
 using UnityEngine;
 using System.Collections.Generic;
-using _Project.Scripts.Runtime.Gameplay.Core.Models;
-using _Project.Scripts.Runtime.Gameplay.Presentation.Animation;
 
 namespace _Project.Scripts.Runtime.Gameplay.Core.Interfaces {
     /// <summary>
@@ -44,8 +42,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Core.Interfaces {
         /// </summary>
         /// <param name="sourceStack">The source stack to take cells from.</param>
         /// <param name="animate">Whether to animate the merge operation.</param>
-        /// <param name="animationService">Optional animation service to use for animating.</param>
-        void AddCellsFrom(IStack sourceStack, bool animate = true, HexAnimationService animationService = null);
+        void AddCellsFrom(IStack sourceStack, bool animate = true);
 
         /// <summary>
         /// Updates the collider size of the stack.

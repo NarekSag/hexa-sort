@@ -4,22 +4,18 @@ using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
-using _Project.Scripts.Runtime.Gameplay.Presentation.Animation;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 
 namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
     public class GridCleanupService {
         private readonly HexSlotRegistry _slotRegistry;
         private readonly StackSortingService _sortingService;
-        private readonly HexAnimationService _animationService;
 
         public GridCleanupService(
             HexSlotRegistry slotRegistry,
-            StackSortingService sortingService,
-            HexAnimationService animationService) {
+            StackSortingService sortingService) {
             _slotRegistry = slotRegistry;
             _sortingService = sortingService;
-            _animationService = animationService;
         }
 
         public async UniTask ProcessPureMerges(HashSet<HexCoordinates> affectedSlots) {
@@ -63,7 +59,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
                                 // Check if pure merge is possible
                                 if (_sortingService.ShouldTriggerSorting(stack, neighborStack)) {
                                     // Execute the merge
-                                    var result = await _sortingService.ProcessStackPair(stack, neighborStack, _animationService);
+                                    var result = await _sortingService.ProcessStackPair(stack, neighborStack, animate: true);
                                     if (result != null && result.WasSortingTriggered) {
                                         anyPureMergesOccurred = true;
                                         // Add both slots to affected slots for next iteration

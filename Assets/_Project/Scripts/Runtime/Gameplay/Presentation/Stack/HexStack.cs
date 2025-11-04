@@ -1,8 +1,8 @@
 using UnityEngine;
 using System;
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
-using _Project.Scripts.Runtime.Gameplay.Presentation.Animation;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
 using _Project.Scripts.Runtime.Utilities.Logging;
 
@@ -89,7 +89,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack {
         }
 
         // IStack implementation
-        public void AddCellsFrom(IStack sourceStack, bool animate = true, HexAnimationService animationService = null) {
+        public async void AddCellsFrom(IStack sourceStack, bool animate = true) {
             if (_mergeService == null) {
                 return;
             }
@@ -97,8 +97,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack {
             // Store the starting index for positioning
             int startingIndex = _cells.Count;
 
-            // Delegate merge logic to service
-            _mergeService.MergeStacks(this, sourceStack, animate, animationService);
+            // Delegate merge logic to service (now async)
+            await _mergeService.MergeStacks(this, sourceStack, animate);
 
             // Update collider sizes
             UpdateColliderSize();

@@ -10,7 +10,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Cell
         [SerializeField] private ColorType _colorType;
         [SerializeField] private ColorMaterialConfig _colorMaterialConfig;
             
-        private HexCellMaterialController _materialController;
+        private HexCellMaterial _materialController;
+        private HexCellAnimator _animator;
             
         public Transform Transform => transform;
             
@@ -38,9 +39,38 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Cell
 
             transform.localPosition = new Vector3(0, index * Height, 0);
         }
+
+        /// <summary>
+        /// Initializes the cell with color type, index, and animation config.
+        /// </summary>
+        public void Initialize(ColorType colorType, int index, HexAnimationConfig animationConfig) {
+            Initialize(colorType, index);
+            InitializeAnimator(animationConfig);
+        }
+        
+        private void InitializeAnimator(HexAnimationConfig animationConfig) {
+            if (animationConfig == null) {
+                return;
+            }
+
+            // Get or add animator component
+            _animator = GetComponent<HexCellAnimator>();
+            if (_animator == null) {
+                _animator = gameObject.AddComponent<HexCellAnimator>();
+            }
+
+            _animator.Initialize(animationConfig);
+        }
+
+        /// <summary>
+        /// Gets the animator component for this cell.
+        /// </summary>
+        public HexCellAnimator GetAnimator() {
+            return _animator;
+        }
         
         private void InitializeMaterialController(ColorType colorType) {
-            _materialController = new HexCellMaterialController(gameObject, _colorMaterialConfig);
+            _materialController = new HexCellMaterial(gameObject, _colorMaterialConfig);
             _materialController.Initialize();
             _materialController.UpdateMaterial(colorType);
         }

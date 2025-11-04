@@ -1,8 +1,9 @@
 using UnityEngine;
 using System.Collections.Generic;
 using System.Linq;
+using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
-using _Project.Scripts.Runtime.Gameplay.Presentation.Animation;
+using _Project.Scripts.Runtime.Gameplay.Presentation.Cell;
 
 namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
     public class StackMergeService {
@@ -14,7 +15,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             _positionService = positionService;
         }
 
-        public void MergeStacks(IStack targetStack, IStack sourceStack, bool animate = true, HexAnimationService animationService = null) {
+        public async UniTask MergeStacks(IStack targetStack, IStack sourceStack, bool animate = true) {
             if (targetStack == null || sourceStack == null || targetStack == sourceStack) {
                 return;
             }
@@ -67,15 +68,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             }
 
             // Animate or immediately move cells
-            if (animate && animationService != null) {
-                // Use animation service
-                var cellTransforms = cellsToMerge.Select(cell => cell.Transform).ToList();
-                animationService.AnimateHexagonStackMerge(
-                    cellTransforms,
-                    sourceStack.Transform,
-                    targetStack.Transform,
-                    targetLocalPositions
-                );
+            if (animate) {
+                // Use cell animators
+                await AnimateCellsToStack(cellsToMerge, sourceStack.Transform, targetStack.Transform, targetLocalPositions);
             } else {
                 // Immediate positioning (no animation)
                 for (int i = 0; i < cellsToMerge.Count; i++) {
@@ -95,6 +90,81 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             if (sourceStack is IStack sourceHexStack) {
                 sourceHexStack.Cells.Clear();
             }
+        }
+
+        /// <summary>
+        /// Animates multiple cells to their target positions in a stack using their individual animators.
+        /// </summary>
+        private async UniTask AnimateCellsToStack(
+            List<ICell> cells,
+            Transform sourceStackTransform,
+            Transform destinationStackTransform,
+            List<Vector3> targetLocalPositions) {
+            
+            if (cells == null || cells.Count == 0) {
+                return;
+            }
+
+            if (sourceStackTransform == null || destinationStackTransform == null) {
+                return;
+            }
+
+            if (targetLocalPositions == null || targetLocalPositions.Count != cells.Count) {
+                return;
+            }
+
+            // Create list of tasks for all animations
+            var animationTasks = new List<UniTask>();
+
+            for (int i = 0; i < cells.Count; i++) {
+                ICell cell = cells[i];
+                if (cell == null) continue;
+
+                // Get animator from cell (if it's a HexCell)
+                HexCellAnimator animator = null;
+                if (cell is HexCell hexCell) {
+                    animator = hexCell.GetAnimator();
+                }
+
+                // Capture source world position and original rotation BEFORE changing parent
+                Vector3 sourceWorldPosition = cell.Transform.position;
+                Quaternion originalRotation = cell.Transform.rotation;
+                
+                Vector3 targetLocalPosition = targetLocalPositions[i];
+                Vector3 destinationWorldPosition = destinationStackTransform.TransformPoint(targetLocalPosition);
+
+                // Calculate direction from source to destination
+                Vector3 direction = (destinationWorldPosition - sourceWorldPosition).normalized;
+                
+                // Determine flip axis based on direction (X or Z axis)
+                // If movement is more along X axis, flip on Z axis (forward/backward flip)
+                // If movement is more along Z axis, flip on X axis (left/right flip)
+                bool flipOnZAxis = Mathf.Abs(direction.x) > Mathf.Abs(direction.z);
+                Vector3 flipAxis = flipOnZAxis ? Vector3.forward : Vector3.right;
+
+                // Calculate delay with stagger (using config values from animator if available)
+                float baseDelay = animator?.BaseDelay ?? 0f;
+                float staggerDelay = animator?.StaggerDelay ?? 0.15f;
+                float delay = baseDelay + (i * staggerDelay);
+
+                // Set parent immediately so local position calculations are correct
+                cell.Transform.SetParent(destinationStackTransform);
+
+                // Restore original rotation before animating (parent change might have affected it)
+                cell.Transform.rotation = originalRotation;
+
+                // Animate if animator is available, otherwise just set position immediately
+                if (animator != null) {
+                    animationTasks.Add(animator.AnimateMerge(sourceWorldPosition, destinationWorldPosition, flipAxis, delay));
+                } else {
+                    // No animator available, set position immediately
+                    cell.Transform.position = destinationWorldPosition;
+                    cell.LocalPosition = targetLocalPosition;
+                }
+            }
+
+            // Wait for all animations to complete
+            await UniTask.WhenAll(animationTasks);
         }
     }
 }

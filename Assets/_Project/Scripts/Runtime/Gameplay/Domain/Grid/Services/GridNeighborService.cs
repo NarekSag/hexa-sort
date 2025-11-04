@@ -3,7 +3,6 @@ using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
-using _Project.Scripts.Runtime.Gameplay.Presentation.Animation;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Models;
 
@@ -11,15 +10,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
     public class GridNeighborService {
         private readonly HexSlotRegistry _slotRegistry;
         private readonly StackSortingService _sortingService;
-        private readonly HexAnimationService _animationService;
 
         public GridNeighborService(
             HexSlotRegistry slotRegistry,
-            StackSortingService sortingService,
-            HexAnimationService animationService) {
+            StackSortingService sortingService) {
             _slotRegistry = slotRegistry;
             _sortingService = sortingService;
-            _animationService = animationService;
         }
 
         public async UniTask<NeighborProcessingResult> ProcessNeighbors(
@@ -58,7 +54,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
                         }
 
                         // Process sorting between the two stacks and await animation completion
-                        SortingResult sortingResult = await _sortingService.ProcessStackPair(currentStack, neighborStack, _animationService);
+                        SortingResult sortingResult = await _sortingService.ProcessStackPair(currentStack, neighborStack, animate: true);
 
                         // If transfers occurred, mark both slots for re-checking
                         if (sortingResult != null && sortingResult.WasSortingTriggered) {

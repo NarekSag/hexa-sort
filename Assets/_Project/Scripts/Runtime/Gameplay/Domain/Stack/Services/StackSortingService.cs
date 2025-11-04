@@ -4,7 +4,7 @@ using System.Linq;
 using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Models;
-using _Project.Scripts.Runtime.Gameplay.Presentation.Animation;
+using _Project.Scripts.Runtime.Gameplay.Presentation.Cell;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 
 namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
@@ -129,100 +129,18 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
         /// <summary>
         /// Executes a pure-to-pure merge. All cells from right stack move to left stack.
         /// </summary>
-        public async UniTask ExecutePureToPureMerge(IStack leftStack, IStack rightStack, HexAnimationService animationService) {
+        public async UniTask ExecutePureToPureMerge(IStack leftStack, IStack rightStack, bool animate = true) {
             if (leftStack == null || rightStack == null) {
                 return;
             }
-
-            bool animate = animationService != null;
             
-            // Handle merge with animation awaiting
-            if (animate && animationService != null) {
-                // Merge stacks with animation and await completion
-                await MergeStacksWithAnimation(leftStack, rightStack, animationService);
-            } else {
-                // Use merge service for non-animated merge
-                _mergeService.MergeStacks(leftStack, rightStack, false, null);
-            }
+            // Use merge service for merge (with or without animation)
+            await _mergeService.MergeStacks(leftStack, rightStack, animate);
 
             leftStack.UpdateColliderSize();
             rightStack.UpdateColliderSize();
         }
         
-        /// <summary>
-        /// Helper method to merge stacks with animation and await completion.
-        /// </summary>
-        private async UniTask MergeStacksWithAnimation(IStack targetStack, IStack sourceStack, HexAnimationService animationService) {
-            if (targetStack == null || sourceStack == null || targetStack == sourceStack) {
-                return;
-            }
-
-            IList<ICell> targetCells = targetStack.Cells;
-            IList<ICell> sourceCells = sourceStack.Cells;
-
-            if (sourceCells == null || sourceCells.Count == 0) {
-                return;
-            }
-
-            // Ensure collider service is initialized
-            ICell cellForSize = null;
-            if (targetCells != null && targetCells.Count > 0) {
-                cellForSize = targetCells[0];
-            } else if (sourceCells != null && sourceCells.Count > 0) {
-                cellForSize = sourceCells[0];
-            }
-            
-            if (cellForSize != null) {
-                _colliderService.CalculateCellColliderSize(cellForSize);
-            }
-
-            // Store the starting index for positioning new cells
-            int startingIndex = targetCells != null ? targetCells.Count : 0;
-
-            // Collect cells to merge and their target positions (LIFO - process from last to first)
-            var cellsToMerge = new List<ICell>();
-            var targetLocalPositions = new List<Vector3>();
-            int cellIndex = startingIndex;
-
-            // Process cells in reverse order (LIFO - last in, first out)
-            for (int i = sourceCells.Count - 1; i >= 0; i--) {
-                ICell cell = sourceCells[i];
-                if (cell != null && !targetCells.Contains(cell)) {
-                    cellsToMerge.Add(cell);
-                    
-                    // Calculate target local position
-                    float yOffset = _colliderService.CalculateYOffset(cellIndex);
-                    Vector3 targetLocalPosition = new Vector3(0f, yOffset, 0f);
-                    targetLocalPositions.Add(targetLocalPosition);
-                    
-                    cellIndex++;
-                }
-            }
-
-            if (cellsToMerge.Count == 0) {
-                return;
-            }
-
-            // Animate and await completion
-            if (animationService != null) {
-                var cellTransforms = cellsToMerge.Select(cell => cell.Transform).ToList();
-                await animationService.AnimateHexagonStackMerge(
-                    cellTransforms,
-                    sourceStack.Transform,
-                    targetStack.Transform,
-                    targetLocalPositions
-                );
-            }
-
-            foreach (ICell cell in cellsToMerge) 
-            {
-                if (!targetStack.Cells.Contains(cell)) {
-                        targetStack.Cells.Add(cell);
-                }
-            }
-
-            sourceStack.Cells.Clear();
-        }
 
         /// <summary>
         /// Executes mixed-to-pure transfer step-by-step (one cell at a time).
@@ -230,7 +148,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
         /// The recursive re-checking system will handle subsequent transfers.
         /// </summary>
         /// <returns>True if a transfer occurred, false otherwise.</returns>
-        public async UniTask<bool> ExecuteMixedToPureTransfer(IStack mixedStack, IStack pureStack, HexAnimationService animationService) {
+        public async UniTask<bool> ExecuteMixedToPureTransfer(IStack mixedStack, IStack pureStack, bool animate = true) {
             if (mixedStack == null || pureStack == null) {
                 return false;
             }
@@ -240,8 +158,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 return false;
             }
 
-            bool animate = animationService != null;
-
             // Transfer only ONE cell (step-by-step behavior)
             ICell topCell = RemoveTopCell(mixedStack);
             if (topCell == null) {
@@ -249,7 +165,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             }
 
             // Transfer to pure stack and await animation
-            await AddCellToTop(pureStack, topCell, animate, animationService);
+            await AddCellToTop(pureStack, topCell, animate);
             
             if (mixedStack != null) {
                 mixedStack.UpdateColliderSize();
@@ -277,7 +193,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
         /// The recursive re-checking system will handle subsequent transfers.
         /// </summary>
         /// <returns>True if a transfer occurred, false otherwise.</returns>
-        public async UniTask<bool> ExecuteMixedToMixedTransfer(IStack mixedStack1, IStack mixedStack2, HexAnimationService animationService) {
+        public async UniTask<bool> ExecuteMixedToMixedTransfer(IStack mixedStack1, IStack mixedStack2, bool animate = true) {
             if (mixedStack1 == null || mixedStack2 == null) {
                 return false;
             }
@@ -287,8 +203,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 return false;
             }
 
-            bool animate = animationService != null;
-
             // Transfer only ONE cell (step-by-step behavior)
             ICell topCell = RemoveTopCell(mixedStack1);
             if (topCell == null) {
@@ -296,7 +210,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             }
 
             // Transfer to mixedStack2 and await animation
-            await AddCellToTop(mixedStack2, topCell, animate, animationService);
+            await AddCellToTop(mixedStack2, topCell, animate);
 
             // Update colliders
             if (mixedStack1 != null) {
@@ -322,7 +236,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
         /// <summary>
         /// Main entry point for processing two stacks. Analyzes states and executes appropriate sorting logic.
         /// </summary>
-        public async UniTask<SortingResult> ProcessStackPair(IStack leftStack, IStack rightStack, HexAnimationService animationService) {
+        public async UniTask<SortingResult> ProcessStackPair(IStack leftStack, IStack rightStack, bool animate = true) {
             if (leftStack == null || rightStack == null) {
                 return SortingResult.None();
             }
@@ -337,7 +251,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 
                 if (leftColor.HasValue && rightColor.HasValue && leftColor.Value == rightColor.Value) {
                     int cellsBefore = rightStack.Cells.Count;
-                    await ExecutePureToPureMerge(leftStack, rightStack, animationService);
+                    await ExecutePureToPureMerge(leftStack, rightStack, animate);
                     int cellsMoved = cellsBefore; // All cells moved
                     return SortingResult.PureMerge(cellsMoved);
                 }
@@ -350,7 +264,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 
                 if (topCellColor.HasValue && pureStackColor.HasValue && topCellColor.Value == pureStackColor.Value) {
                     int cellsBefore = leftStack.Cells.Count;
-                    bool transferred = await ExecuteMixedToPureTransfer(leftStack, rightStack, animationService);
+                    bool transferred = await ExecuteMixedToPureTransfer(leftStack, rightStack, animate);
                     if (transferred) {
                         int cellsMoved = cellsBefore - leftStack.Cells.Count;
                         return SortingResult.MixedTransfer(cellsMoved);
@@ -365,7 +279,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 
                 if (topCellColor.HasValue && pureStackColor.HasValue && topCellColor.Value == pureStackColor.Value) {
                     int cellsBefore = rightStack.Cells.Count;
-                    bool transferred = await ExecuteMixedToPureTransfer(rightStack, leftStack, animationService);
+                    bool transferred = await ExecuteMixedToPureTransfer(rightStack, leftStack, animate);
                     if (transferred) {
                         int cellsMoved = cellsBefore - rightStack.Cells.Count;
                         return SortingResult.MixedTransfer(cellsMoved);
@@ -381,7 +295,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
                 if (topCellColor1.HasValue && topCellColor2.HasValue && topCellColor1.Value == topCellColor2.Value) {
                     // Track cells before transfer (cells are removed from leftStack)
                     int cellsBefore = leftStack.Cells.Count;
-                    bool transferred = await ExecuteMixedToMixedTransfer(leftStack, rightStack, animationService);
+                    bool transferred = await ExecuteMixedToMixedTransfer(leftStack, rightStack, animate);
                     if (transferred) {
                         int cellsMoved = cellsBefore - leftStack.Cells.Count;
                         return SortingResult.MixedTransfer(cellsMoved);
@@ -411,7 +325,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
         /// <summary>
         /// Adds a cell to the top of a stack.
         /// </summary>
-        private async UniTask AddCellToTop(IStack stack, ICell cell, bool animate, HexAnimationService animationService) {
+        private async UniTask AddCellToTop(IStack stack, ICell cell, bool animate) {
             if (stack == null || cell == null) {
                 return;
             }
@@ -442,16 +356,31 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services {
             float yOffset = _colliderService.CalculateYOffset(index);
             Vector3 targetLocalPosition = new Vector3(0f, yOffset, 0f);
 
-            if (animate && animationService != null) {
-                // Animate the cell to its new position and await completion
-                var cellTransforms = new List<Transform> { cell.Transform };
-                var targetPositions = new List<Vector3> { targetLocalPosition };
-                await animationService.AnimateHexagonStackMerge(
-                    cellTransforms,
-                    stack.Transform, // source (cell's current parent)
-                    stack.Transform, // target
-                    targetPositions
-                );
+            if (animate) {
+                // Get animator from cell (if it's a HexCell)
+                HexCellAnimator animator = null;
+                if (cell is HexCell hexCell) {
+                    animator = hexCell.GetAnimator();
+                }
+
+                if (animator != null) {
+                    // Capture source position and rotation before changing parent
+                    Vector3 sourceWorldPosition = cell.Transform.position;
+                    Quaternion originalRotation = cell.Transform.rotation;
+                    
+                    Vector3 destinationWorldPosition = stack.Transform.TransformPoint(targetLocalPosition);
+                    
+                    // Calculate direction for flip axis
+                    Vector3 direction = (destinationWorldPosition - sourceWorldPosition).normalized;
+                    bool flipOnZAxis = Mathf.Abs(direction.x) > Mathf.Abs(direction.z);
+                    Vector3 flipAxis = flipOnZAxis ? Vector3.forward : Vector3.right;
+
+                    // Animate the cell to its new position and await completion
+                    await animator.AnimateMerge(sourceWorldPosition, destinationWorldPosition, flipAxis, animator.BaseDelay);
+                } else {
+                    // No animator available, set position immediately
+                    cell.LocalPosition = targetLocalPosition;
+                }
             } else {
                 // Immediate positioning
                 cell.LocalPosition = targetLocalPosition;
