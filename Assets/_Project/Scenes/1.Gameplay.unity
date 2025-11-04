@@ -478,7 +478,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 690808337}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 09a86a11d455d4a0cbb6eda38ee48997, type: 3}
+  m_Script: {fileID: 11500000, guid: 22da5f057abe67344b12607d78a263d9, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Stack.HexStackBoard
   _leftPosition: {fileID: 2091432906}
@@ -775,7 +775,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 1156081325}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e0967c4d3c9b1474b887151f381ecad9, type: 3}
+  m_Script: {fileID: 11500000, guid: f3d6247b9c4eaa147944102a592b67ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Input.DI.InputInstaller
   _dragService: {fileID: 318050882}
