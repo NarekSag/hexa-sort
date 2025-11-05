@@ -1,4 +1,5 @@
 using System;
+using UniRx;
 using UnityEngine;
 using VContainer.Unity;
 using _Project.Scripts.Runtime.Utilities.Logging;
@@ -9,20 +10,24 @@ using _Project.Scripts.Runtime.Gameplay.Presentation.Stack;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
 using _Project.Scripts.Runtime.Utilities.Persistence;
 using _Project.Scripts.Runtime.Utilities.Persistence.Models;
+using _Project.Scripts.Runtime.Gameplay.UI.Game;
 using Cysharp.Threading.Tasks;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
 {
-    public class GameplayFlow : IStartable
+    public class GameplayFlow : IStartable, IDisposable
     {
         private readonly HexGridFactory _hexGridFactory;
         private readonly HexSlot _slotPrefab;
         private readonly LevelManager _levelManager;
         private readonly SaveService _saveService;
         private readonly LoadService _loadService;
+        private readonly GameViewModel _gameViewModel;
+        private readonly GameView _gameView;
         
         private GridController _currentGridController;
-        private HexStackBoard _stackBoard;
+        private readonly HexStackBoard _stackBoard;
+        private readonly CompositeDisposable _disposables = new CompositeDisposable();
         
         public GameplayFlow(
             HexGridFactory hexGridFactory, 
@@ -30,7 +35,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             LevelManager levelManager,
             HexStackBoard stackBoard,
             SaveService saveService,
-            LoadService loadService)
+            LoadService loadService,
+            GameViewModel gameViewModel,
+            GameView gameView)
         {
             _hexGridFactory = hexGridFactory;
             _slotPrefab = slotPrefab;
@@ -38,15 +45,28 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             _stackBoard = stackBoard;
             _saveService = saveService;
             _loadService = loadService;
+            _gameViewModel = gameViewModel;
+            _gameView = gameView;
         }
 
         public async void Start()
         {
             try
             {
-                _levelManager.OnLevelStarted += OnLevelStarted;
-                _levelManager.OnLevelCompleted += OnLevelCompleted;
-                _levelManager.OnLevelFailed += OnLevelFailed;
+                _gameView.Initialize(_gameViewModel);
+                
+                // Subscribe to level events using reactive observables
+                _levelManager.OnLevelStarted
+                    .Subscribe(OnLevelStarted)
+                    .AddTo(_disposables);
+                
+                _levelManager.OnLevelCompleted
+                    .Subscribe(OnLevelCompleted)
+                    .AddTo(_disposables);
+                
+                _levelManager.OnLevelFailed
+                    .Subscribe(OnLevelFailed)
+                    .AddTo(_disposables);
                 
                 // Load saved level
                 var saveData = await _loadService.LoadGameData();
@@ -56,6 +76,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             {
                 CustomDebug.LogError(LogCategory.Gameplay, $"GameplayFlow Start Failed: {e.Message}");
             }
+        }
+        
+        public void Dispose()
+        {
+            _disposables?.Dispose();
         }
         
         private void OnLevelStarted(Core.Models.LevelData levelData)

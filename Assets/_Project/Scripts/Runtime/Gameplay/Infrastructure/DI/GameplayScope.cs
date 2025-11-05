@@ -13,6 +13,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         [SerializeField] private HexStackBoard _hexStackBoard;
         [SerializeField] private InputInstaller _inputInstaller;
         [SerializeField] private ConfigInstaller _configInstaller;
+        [SerializeField] private UIInstaller _uiInstaller;
 
         protected override void Configure(IContainerBuilder builder)
         {
@@ -51,6 +52,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         {
             _inputInstaller.Install(builder);
             _configInstaller.Install(builder);
+            _uiInstaller.Install(builder);
         }
     }
 }

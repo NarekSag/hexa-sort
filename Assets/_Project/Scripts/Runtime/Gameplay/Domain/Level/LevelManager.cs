@@ -1,4 +1,5 @@
 using System;
+using UniRx;
 using _Project.Scripts.Runtime.Gameplay.Config;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Utilities.Logging;
@@ -7,22 +8,31 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Level {
     public class LevelManager {
         private readonly LevelProgressionConfig _progressionConfig;
         
-        private LevelData _currentLevel;
-        private int _cellsCleared = 0;
+        private readonly ReactiveProperty<LevelData> _currentLevel = new ReactiveProperty<LevelData>();
+        private readonly ReactiveProperty<int> _cellsCleared = new ReactiveProperty<int>(0);
+        private readonly ReactiveProperty<float> _progress = new ReactiveProperty<float>(0f);
         
-        public event Action<LevelData> OnLevelStarted;
-        public event Action<int> OnCellsCleared;
-        public event Action<LevelData> OnLevelCompleted;
-        public event Action<LevelData> OnLevelFailed;
+        private readonly Subject<LevelData> _levelStarted = new Subject<LevelData>();
+        private readonly Subject<LevelData> _levelCompleted = new Subject<LevelData>();
+        private readonly Subject<LevelData> _levelFailed = new Subject<LevelData>();
         
-        public LevelData CurrentLevel => _currentLevel;
-        public int CurrentLevelNumber => _currentLevel != null ? _currentLevel.LevelNumber : 1;
-        public int CellsCleared => _cellsCleared;
-        public int CellsRemaining => _currentLevel != null ? _currentLevel.CellsToClear - _cellsCleared : 0;
-        public bool IsLevelActive => _currentLevel != null;
+        // Reactive Properties
+        public IReadOnlyReactiveProperty<LevelData> CurrentLevel => _currentLevel;
+        public IReadOnlyReactiveProperty<int> CellsCleared => _cellsCleared;
+        public IReadOnlyReactiveProperty<float> Progress => _progress;
+        
+        // Reactive Observables for events
+        public IObservable<LevelData> OnLevelStarted => _levelStarted;
+        public IObservable<LevelData> OnLevelCompleted => _levelCompleted;
+        public IObservable<LevelData> OnLevelFailed => _levelFailed;
         
         public LevelManager(LevelProgressionConfig progressionConfig) {
             _progressionConfig = progressionConfig;
+            
+            // Update progress when cells cleared or level changes
+            Observable.CombineLatest(_cellsCleared, _currentLevel, (cleared, level) => 
+                level != null ? (float)cleared / level.CellsToClear : 0f)
+                .Subscribe(progress => _progress.Value = progress);
         }
         
         public void StartLevel(int levelNumber) {
@@ -31,54 +41,59 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Level {
                 return;
             }
             
-            _currentLevel = _progressionConfig.GetLevelData(levelNumber);
-            _cellsCleared = 0;
+            var levelData = _progressionConfig.GetLevelData(levelNumber);
+            _currentLevel.Value = levelData;
+            _cellsCleared.Value = 0;
             
-            CustomDebug.Log(LogCategory.Gameplay, $"Starting {_currentLevel}");
-            OnLevelStarted?.Invoke(_currentLevel);
+            CustomDebug.Log(LogCategory.Gameplay, $"Starting {levelData}");
+            
+            _levelStarted.OnNext(levelData);
         }
         
         public void NotifyCellsCleared(int cellCount) {
-            if (_currentLevel == null) {
+            if (_currentLevel.Value == null) {
                 CustomDebug.LogWarning(LogCategory.Gameplay, "Cells cleared but no level is active!");
                 return;
             }
             
-            _cellsCleared += cellCount;
-            OnCellsCleared?.Invoke(_cellsCleared);
+            _cellsCleared.Value += cellCount;
             
             CustomDebug.Log(LogCategory.Gameplay, 
-                $"Cells cleared! {_cellsCleared}/{_currentLevel.CellsToClear}");
+                $"Cells cleared! {_cellsCleared.Value}/{_currentLevel.Value.CellsToClear}");
             
-            if (_cellsCleared >= _currentLevel.CellsToClear) {
+            if (_cellsCleared.Value >= _currentLevel.Value.CellsToClear) {
                 CompleteLevel();
             }
         }
         
         private void CompleteLevel() {
-            CustomDebug.Log(LogCategory.Gameplay, $"Level {_currentLevel.LevelNumber} completed!");
-            OnLevelCompleted?.Invoke(_currentLevel);
+            var levelData = _currentLevel.Value;
+            CustomDebug.Log(LogCategory.Gameplay, $"Level {levelData.LevelNumber} completed!");
+            
+            _levelCompleted.OnNext(levelData);
         }
         
         public void FailLevel() {
-            if (_currentLevel == null) {
+            if (_currentLevel.Value == null) {
                 return;
             }
             
-            CustomDebug.Log(LogCategory.Gameplay, $"Level {_currentLevel.LevelNumber} failed!");
-            OnLevelFailed?.Invoke(_currentLevel);
+            var levelData = _currentLevel.Value;
+            CustomDebug.Log(LogCategory.Gameplay, $"Level {levelData.LevelNumber} failed!");
+            
+            _levelFailed.OnNext(levelData);
         }
         
         public void RestartLevel() {
-            if (_currentLevel != null) {
-                int currentLevelNumber = _currentLevel.LevelNumber;
+            if (_currentLevel.Value != null) {
+                int currentLevelNumber = _currentLevel.Value.LevelNumber;
                 StartLevel(currentLevelNumber);
             }
         }
         
         public void LoadNextLevel() {
-            if (_currentLevel != null) {
-                StartLevel(_currentLevel.LevelNumber + 1);
+            if (_currentLevel.Value != null) {
+                StartLevel(_currentLevel.Value.LevelNumber + 1);
             }
         }
     }
