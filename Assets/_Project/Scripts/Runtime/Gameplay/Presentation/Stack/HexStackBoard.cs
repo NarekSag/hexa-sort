@@ -25,10 +25,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
                 _spawnPoints = GetComponentsInChildren<StackSpawnPoint>();
                 CustomDebug.Log(LogCategory.Gameplay, $"HexStackBoard: Auto-detected {_spawnPoints.Length} spawn points");
             }
-            else
-            {
-                CustomDebug.Log(LogCategory.Gameplay, $"HexStackBoard: Using {_spawnPoints.Length} pre-assigned spawn points");
-            }
         }
 
         public void Initialize(LevelData levelData = null)
@@ -95,15 +91,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
                 return;
             }
 
-            CustomDebug.Log(LogCategory.Gameplay, $"HexStackBoard: Initializing {_spawnPoints.Length} spawn points...");
-
             // Initialize all spawn points (creates initial stacks)
             int initializedCount = 0;
             for (int i = 0; i < _spawnPoints.Length; i++)
             {
                 if (_spawnPoints[i] != null)
                 {
-                    CustomDebug.Log(LogCategory.Gameplay, $"Initializing spawn point {i} ({_spawnPoints[i].name})");
                     _spawnPoints[i].Initialize(_stackFactory, _currentLevelData);
                     initializedCount++;
                 }
@@ -112,8 +105,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
                     CustomDebug.LogWarning(LogCategory.Gameplay, $"Spawn point {i} is NULL!");
                 }
             }
-
-            CustomDebug.Log(LogCategory.Gameplay, $"HexStackBoard: Initialized {initializedCount}/{_spawnPoints.Length} spawn points");
         }
 
         private void SubscribeToAllSpawnPoints()

@@ -16,6 +16,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Level {
         public event Action<LevelData> OnLevelFailed;
         
         public LevelData CurrentLevel => _currentLevel;
+        public int CurrentLevelNumber => _currentLevel != null ? _currentLevel.LevelNumber : 1;
         public int CellsCleared => _cellsCleared;
         public int CellsRemaining => _currentLevel != null ? _currentLevel.CellsToClear - _cellsCleared : 0;
         public bool IsLevelActive => _currentLevel != null;

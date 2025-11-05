@@ -7,6 +7,9 @@ using _Project.Scripts.Runtime.Gameplay.Domain.Level;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Stack;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
+using _Project.Scripts.Runtime.Utilities.Persistence;
+using _Project.Scripts.Runtime.Utilities.Persistence.Models;
+using Cysharp.Threading.Tasks;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
 {
@@ -15,6 +18,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         private readonly HexGridFactory _hexGridFactory;
         private readonly HexSlot _slotPrefab;
         private readonly LevelManager _levelManager;
+        private readonly SaveService _saveService;
+        private readonly LoadService _loadService;
         
         private GridController _currentGridController;
         private HexStackBoard _stackBoard;
@@ -23,15 +28,19 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             HexGridFactory hexGridFactory, 
             HexSlot slotPrefab,
             LevelManager levelManager,
-            HexStackBoard stackBoard)
+            HexStackBoard stackBoard,
+            SaveService saveService,
+            LoadService loadService)
         {
             _hexGridFactory = hexGridFactory;
             _slotPrefab = slotPrefab;
             _levelManager = levelManager;
             _stackBoard = stackBoard;
+            _saveService = saveService;
+            _loadService = loadService;
         }
 
-        public void Start()
+        public async void Start()
         {
             try
             {
@@ -39,10 +48,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
                 _levelManager.OnLevelCompleted += OnLevelCompleted;
                 _levelManager.OnLevelFailed += OnLevelFailed;
                 
-                //TODO: Get current level from level progression config
-                _levelManager.StartLevel(1);
-                
-                CustomDebug.Log(LogCategory.Gameplay, "GameplayFlow started");
+                // Load saved level
+                var saveData = await _loadService.LoadGameData();
+                _levelManager.StartLevel(saveData.CurrentLevel);
             }
             catch (Exception e)
             {
@@ -51,9 +59,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         }
         
         private void OnLevelStarted(Core.Models.LevelData levelData)
-        {
-            CustomDebug.Log(LogCategory.Gameplay, $"Level {levelData.LevelNumber} started: {levelData}");
-            
+        {   
             ClearOldLevel();
             CreateNewLevel(levelData);
         }
@@ -100,16 +106,30 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             _levelManager.NotifyCellsCleared(cellCount);
         }
         
-        private void OnLevelCompleted(Core.Models.LevelData levelData)
+        private async void OnLevelCompleted(Core.Models.LevelData levelData)
         {
-            CustomDebug.Log(LogCategory.Gameplay, $"Level {levelData.LevelNumber} completed!");
-            
             // TODO: Show victory UI
+            
+            // Save progress for next level
+            await SaveProgress(levelData);
             
             // Auto-advance to next level (TODO: change to wait for button press)
             UnityEngine.Object.Destroy(_currentGridController.GridTransform.gameObject);
             _stackBoard?.ClearAllStacks();
             _levelManager.LoadNextLevel();
+        }
+
+        private async UniTask SaveProgress(Core.Models.LevelData levelData)
+        {
+            try
+            {
+                var saveData = new GameSaveData(levelData.LevelNumber + 1);
+                await _saveService.SaveGameData(saveData);
+            }
+            catch (Exception e)
+            {
+                CustomDebug.LogError(LogCategory.Gameplay, $"Failed to save progress: {e.Message}");
+            }
         }
         
         private void OnLevelFailed(Core.Models.LevelData levelData)

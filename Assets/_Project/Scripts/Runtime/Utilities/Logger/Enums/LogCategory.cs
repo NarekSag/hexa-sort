@@ -8,5 +8,6 @@ namespace _Project.Scripts.Runtime.Utilities.Logging
         Gameplay,
         Grid,
         Cell,
+        Persistence,
     }
 }

@@ -2,6 +2,7 @@ using VContainer.Unity;
 using VContainer;
 using _Project.Scripts.Runtime.Utilities.Loading;
 using _Project.Scripts.Runtime.Utilities.Logging;
+using _Project.Scripts.Runtime.Utilities.Persistence;
 
 namespace _Project.Scripts.Runtime.Bootstrap.DI
 {
@@ -30,6 +31,8 @@ namespace _Project.Scripts.Runtime.Bootstrap.DI
         private void RegisterServices(IContainerBuilder builder)
         {
             builder.Register<LoadingService>(Lifetime.Singleton);
+            builder.Register<SaveService>(Lifetime.Singleton);
+            builder.Register<LoadService>(Lifetime.Singleton);
         }
     }
 }
