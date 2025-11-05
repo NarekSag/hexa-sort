@@ -1,0 +1,35 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!114 &11400000
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 0}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 16d49bc815af64fa589d2f96186bbd5c, type: 3}
+  m_Name: LevelProgressionConfig
+  m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Config.LevelProgressionConfig
+  _slotPrefab: {fileID: 4525452528590598651, guid: 3fad0c56ccc9bcd43b8fb19e2a9ad46b, type: 3}
+  _levelTiers:
+  - StartLevel: 1
+    GridWidth: 3
+    GridHeight: 3
+    MinColors: 0
+    MaxColors: 2
+    AvailableColors: 0000000001000000
+    MinStackHeight: 0
+    MaxStackHeight: 5
+  - StartLevel: 2
+    GridWidth: 3
+    GridHeight: 3
+    MinColors: 0
+    MaxColors: 3
+    AvailableColors: 000000000100000002000000
+    MinStackHeight: 0
+    MaxStackHeight: 5
+  _baseCellsToClear: 0
+  _cellsToClearIncrement: 10
+  _maxCellsToClear: 500

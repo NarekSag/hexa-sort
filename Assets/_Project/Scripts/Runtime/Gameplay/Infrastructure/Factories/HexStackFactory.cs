@@ -10,17 +10,26 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
     public class HexStackFactory {
         [Inject] private readonly HexStackConfig _config;
         
-        public IStack CreateRandomStack(Transform parent = null, Vector3 position = default) {
+        public IStack CreateRandomStack(Transform parent = null, Vector3 position = default, LevelData levelData = null) {
             GameObject stackObject = new GameObject("HexStack");
             stackObject.transform.SetParent(parent);
             stackObject.transform.position = position;
             
             IStack stack = stackObject.AddComponent<HexStack>();
             
-            int cellCount = Random.Range(2, 6);
+            // Use level data if provided, otherwise use defaults
+            int minHeight = levelData?.MinStackHeight ?? 2;
+            int maxHeight = levelData?.MaxStackHeight ?? 6;
+            ColorType[] availableColors = levelData?.AvailableColors ?? _config.AvailableColors;
+            
+            // Ensure minimum height is at least 1 to prevent empty stacks
+            minHeight = Mathf.Max(1, minHeight);
+            maxHeight = Mathf.Max(minHeight, maxHeight);
+            
+            int cellCount = Random.Range(minHeight, maxHeight + 1);
             
             for (int i = 0; i < cellCount; i++) {
-                ICell cell = CreateRandomCell(stackObject.transform, i);
+                ICell cell = CreateRandomCell(stackObject.transform, i, availableColors);
                 stack.Cells.Add(cell);
             }
             
@@ -29,7 +38,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
             return stack;
         }
 
-        private ICell CreateRandomCell(Transform parent, int index) {
+        private ICell CreateRandomCell(Transform parent, int index, ColorType[] availableColors) {
             if (_config.CellPrefab == null) {
                 Debug.LogError("Cell prefab is not assigned!");
                 return null;
@@ -37,7 +46,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
             
             ICell cell = Object.Instantiate(_config.CellPrefab, parent);
             
-            ColorType randomColor = _config.AvailableColors[Random.Range(0, _config.AvailableColors.Length)];
+            ColorType randomColor = availableColors[Random.Range(0, availableColors.Length)];
             
             cell.Initialize(randomColor, index);
             

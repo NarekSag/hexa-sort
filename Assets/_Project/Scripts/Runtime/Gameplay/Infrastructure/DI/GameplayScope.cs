@@ -2,6 +2,7 @@ using VContainer.Unity;
 using VContainer;
 using _Project.Scripts.Runtime.Utilities.Logging;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories;
+using _Project.Scripts.Runtime.Gameplay.Domain.Level;
 using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Stack;
 
@@ -20,6 +21,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
                 RegisterInstallers(builder);
                 RegisterComponents(builder);
                 RegisterFactories(builder);
+                RegisterManagers(builder);
 
                 builder.RegisterEntryPoint<GameplayFlow>();
             }
@@ -33,6 +35,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         {
             builder.Register<HexGridFactory>(Lifetime.Scoped);
             builder.Register<HexStackFactory>(Lifetime.Scoped);
+        }
+        
+        private void RegisterManagers(IContainerBuilder builder)
+        {
+            builder.Register<LevelManager>(Lifetime.Singleton);
         }
 
         private void RegisterComponents(IContainerBuilder builder)

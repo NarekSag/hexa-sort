@@ -1,5 +1,4 @@
 using UnityEngine;
-using _Project.Scripts.Runtime.Gameplay.Config;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
@@ -10,16 +9,19 @@ using _Project.Scripts.Runtime.Gameplay.Domain.Grid.Models;
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
     public class HexGridFactory 
     {
-        public GridController Create(HexGridConfig config, Transform parent = null) {
-            if (config == null) {
-                Debug.LogError("HexGridConfig is not assigned!");
+        public GridController Create(HexSlot slotPrefab, LevelData levelData, Transform parent = null) {
+            if (slotPrefab == null) {
+                Debug.LogError("SlotPrefab is not assigned!");
                 return null;
             }
 
-            if (!config.IsValid()) {
-                Debug.LogError("HexGridConfig is invalid! Check width, height, and cell prefab.");
+            if (levelData == null) {
+                Debug.LogError("LevelData is not provided!");
                 return null;
             }
+
+            int gridWidth = levelData.GridWidth;
+            int gridHeight = levelData.GridHeight;
 
             // Create grid container GameObject
             GameObject gridObject = new GameObject("HexGrid");
@@ -29,7 +31,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
 
             // Create registry and mapper
             HexSlotRegistry slotRegistry = new HexSlotRegistry();
-            IHexGridMapper mapper = new HexGridMapper(config.Width, config.Height);
+            IHexGridMapper mapper = new HexGridMapper(gridWidth, gridHeight);
             
             // TODO: Refactor this stack service creation logic
             StackMergeService mergeService = new StackMergeService();
@@ -49,25 +51,29 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
                 recursionService,
                 cleanupService);
             
+            // Set the grid transform reference
+            gridController.SetGridTransform(gridObject.transform);
+            
             // Create all slots
-            CreateAllSlots(config, mapper, gridObject.transform, slotRegistry, gridController);
+            CreateAllSlots(slotPrefab, mapper, gridObject.transform, slotRegistry, gridController);
 
             return gridController;
         }
 
         private void CreateAllSlots(
-            HexGridConfig config, 
+            HexSlot slotPrefab, 
             IHexGridMapper mapper, 
             Transform gridTransform,
             HexSlotRegistry slotRegistry,
             GridController gridController) {
             
-            for (int z = 0; z < config.Height; z++) {
-                for (int x = 0; x < config.Width; x++) {
+            // Use mapper dimensions
+            for (int z = 0; z < mapper.Height; z++) {
+                for (int x = 0; x < mapper.Width; x++) {
                     HexCoordinates coordinates = mapper.GetCoordinateFromOffset(x, z);
                     Vector3 position = mapper.GetWorldPositionFromOffset(x, z);
                     
-                    HexSlot slot = CreateSlot(config, coordinates, position, gridTransform, gridController);
+                    HexSlot slot = CreateSlot(slotPrefab, coordinates, position, gridTransform, gridController);
                     if (slot != null) {
                         slotRegistry.Register(coordinates, slot);
                     }
@@ -76,18 +82,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
         }
 
         private HexSlot CreateSlot(
-            HexGridConfig config,
+            HexSlot slotPrefab,
             HexCoordinates coordinates, 
             Vector3 position, 
             Transform gridTransform,
             GridController gridController) {
-            
-            if (config.SlotPrefab == null) {
-                Debug.LogError("HexStackSlot prefab is not assigned!");
-                return null;
-            }
 
-            HexSlot slot = Object.Instantiate(config.SlotPrefab, gridTransform);
+            HexSlot slot = Object.Instantiate(slotPrefab, gridTransform);
             slot.transform.localPosition = position;
             slot.Initialize(coordinates, gridController);
             return slot;

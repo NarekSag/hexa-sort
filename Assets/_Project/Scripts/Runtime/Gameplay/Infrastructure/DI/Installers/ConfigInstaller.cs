@@ -8,13 +8,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
 {
     public class ConfigInstaller : MonoBehaviour, IInstaller
     {
-        [SerializeField] private HexGridConfig _hexGridConfig;
         [SerializeField] private HexStackConfig _hexStackConfig;
+        [SerializeField] private LevelProgressionConfig _levelProgressionConfig;
 
         public void Install(IContainerBuilder builder)
         {
-            builder.RegisterComponent(_hexGridConfig);
             builder.RegisterComponent(_hexStackConfig);
+            builder.RegisterComponent(_levelProgressionConfig);
+            builder.RegisterComponent(_levelProgressionConfig.SlotPrefab);
         }
     }
 }

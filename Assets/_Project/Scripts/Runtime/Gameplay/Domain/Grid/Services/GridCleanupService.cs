@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
 using Cysharp.Threading.Tasks;
@@ -10,6 +11,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
     public class GridCleanupService {
         private readonly HexSlotRegistry _slotRegistry;
         private readonly StackSortingService _sortingService;
+        
+        public event Action<int> OnCellsCleared;
 
         public GridCleanupService(
             HexSlotRegistry slotRegistry,
@@ -117,13 +120,19 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
                 return;
             }
 
+            // Count total cells before destroying
+            int totalCellsCleared = 0;
+            
             // Destroy all cells in stacks with 10+ cells, then destroy the stack GameObjects
             foreach (IStack stackToClear in stacksToClear) {
-                // Destroy all cells in the stack
+                // Count cells in this stack
                 if (stackToClear.Cells != null) {
+                    totalCellsCleared += stackToClear.Cells.Count;
+                    
+                    // Destroy all cells in the stack
                     foreach (ICell cell in stackToClear.Cells) {
                         if (cell != null && cell.Transform.gameObject != null) {
-                            Object.Destroy(cell.Transform.gameObject);
+                            UnityEngine.Object.Destroy(cell.Transform.gameObject);
                         }
                     }
                     stackToClear.Cells.Clear();
@@ -131,12 +140,17 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
 
                 // Destroy the stack GameObject
                 if (stackToClear.Transform.gameObject != null) {
-                    Object.Destroy(stackToClear.Transform.gameObject);
+                    UnityEngine.Object.Destroy(stackToClear.Transform.gameObject);
                 }
             }
 
             // Clear all stacks from the slot
             slot.ClearStacks();
+            
+            // Notify how many cells were cleared (for level progression)
+            if (totalCellsCleared > 0) {
+                OnCellsCleared?.Invoke(totalCellsCleared);
+            }
         }
 
         public async UniTask CheckAndClearStacksWithTenPlusCells(HashSet<HexCoordinates> slotCoordinates) {

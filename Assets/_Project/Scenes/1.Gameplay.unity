@@ -806,6 +806,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.Infrastructure.DI.ConfigInstaller
   _hexGridConfig: {fileID: 11400000, guid: 83b91536fb43ee640a815e4312947ea3, type: 2}
   _hexStackConfig: {fileID: 11400000, guid: eaee4505d1e9041e88d6d3ca35b312b4, type: 2}
+  _levelProgressionConfig: {fileID: 11400000, guid: c44b56609767d4202b265d8a25b83334, type: 2}
 --- !u!1 &1314998456
 GameObject:
   m_ObjectHideFlags: 0

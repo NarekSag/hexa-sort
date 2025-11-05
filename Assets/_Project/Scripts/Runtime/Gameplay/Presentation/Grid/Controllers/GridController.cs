@@ -1,3 +1,4 @@
+using UnityEngine;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
@@ -11,6 +12,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers {
         private readonly GridNeighborService _neighborService;
         private readonly GridRecursionService _recursionService;
         private readonly GridCleanupService _cleanupService;
+        
+        public Transform GridTransform { get; private set; }
+        public GridCleanupService CleanupService => _cleanupService;
 
         public GridController(
             HexSlotRegistry slotRegistry, 
@@ -21,6 +25,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers {
             _neighborService = neighborService;
             _recursionService = recursionService;
             _cleanupService = cleanupService;
+        }
+        
+        public void SetGridTransform(Transform gridTransform) {
+            GridTransform = gridTransform;
         }
 
         public void CheckNeighborsAndSort(HexCoordinates slotCoordinates) {

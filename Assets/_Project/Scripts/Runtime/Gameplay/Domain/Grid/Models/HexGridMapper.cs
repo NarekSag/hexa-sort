@@ -9,13 +9,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Models {
         private readonly int _width;
         private readonly int _height;
 
+        public int Width => _width;
+        public int Height => _height;
+
         public HexGridMapper(int width, int height) {
             _width = width;
             _height = height;
-        }
-
-        public bool IsValidCoordinate(int x, int z) {
-            return x >= 0 && x < _width && z >= 0 && z < _height;
         }
 
         public HexCoordinates GetCoordinateFromOffset(int x, int z) {
@@ -46,28 +45,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Models {
             Vector3 centeringOffset = GetCenteringOffset();
             
             return new Vector3(positionX + centeringOffset.x, 0f, positionZ + centeringOffset.z);
-        }
-
-        public Vector3 GetWorldPosition(HexCoordinates coordinates) {
-            int x = coordinates.X;
-            int z = coordinates.Z;
-            
-            float offset = (z % 2) * 0.5f;
-            float positionX = (x + offset) * (HexMetrics.InnerRadius * 2f);
-            float positionZ = z * (HexMetrics.OuterRadius * 1.5f);
-            
-            return new Vector3(positionX, 0f, positionZ);
-        }
-
-        public HexCoordinates GetCoordinateFromWorldPosition(Vector3 worldPosition) {
-            float x = worldPosition.x / (HexMetrics.InnerRadius * 2f);
-            float z = worldPosition.z / (HexMetrics.OuterRadius * 1.5f);
-            
-            int q = Mathf.RoundToInt(x);
-            int r = Mathf.RoundToInt(-x - z);
-            int s = Mathf.RoundToInt(z);
-            
-            return new HexCoordinates(q, s);
         }
     }
 }
