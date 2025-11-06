@@ -40,6 +40,12 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Boosters
                 return;
             }
             
+            // Check if the booster is unlocked
+            if (!_boosterManager.IsBoosterUnlocked(booster.Type))
+            {
+                return;
+            }
+            
             _boosterManager.SetActiveBooster(booster);
             booster.Use();
             _stateManager.SetState(GameplayState.BoosterActive);

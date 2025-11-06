@@ -10,12 +10,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
     {
         [SerializeField] private HexStackConfig _hexStackConfig;
         [SerializeField] private LevelProgressionConfig _levelProgressionConfig;
+        [SerializeField] private BoosterUnlockConfig _boosterUnlockConfig;
 
         public void Install(IContainerBuilder builder)
         {
             builder.RegisterComponent(_hexStackConfig);
             builder.RegisterComponent(_levelProgressionConfig);
             builder.RegisterComponent(_levelProgressionConfig.SlotPrefab);
+            builder.RegisterComponent(_boosterUnlockConfig);
         }
     }
 }

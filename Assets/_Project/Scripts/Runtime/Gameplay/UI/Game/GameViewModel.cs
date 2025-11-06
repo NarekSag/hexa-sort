@@ -17,12 +17,14 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Game
         public LevelFailedViewModel LevelFailedViewModel { get; }
         public BoosterSelectionViewModel BoosterSelectionViewModel { get; }
         public BoosterViewModel BoosterViewModel { get; }
+        public BoosterManager BoosterManager { get; }
         
         public GameViewModel(
             LevelManager levelManager,
             BoosterManager boosterManager,
             GameplayStateManager stateManager)
         {
+            BoosterManager = boosterManager;
             LevelProgressionViewModel = new LevelProgressionViewModel(levelManager);
             SettingsViewModel = new SettingsViewModel(levelManager);
             LevelCompleteViewModel = new LevelCompletedViewModel(levelManager);

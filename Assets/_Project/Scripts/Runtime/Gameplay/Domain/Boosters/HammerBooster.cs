@@ -7,6 +7,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Boosters
         private int _usageRemaining = 1;
         
         public int Id => (int)BoosterType.Hammer;
+        public BoosterType Type => BoosterType.Hammer;
         public string Name => "Hammer";
         public string Description => "Destroy any stack";
         

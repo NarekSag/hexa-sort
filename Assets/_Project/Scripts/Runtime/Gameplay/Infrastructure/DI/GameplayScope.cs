@@ -53,7 +53,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             // Register state manager
             builder.Register<GameplayStateManager>(Lifetime.Singleton);
             
-            // Register booster manager
+            // Register booster manager (now includes unlock logic)
             builder.Register<BoosterManager>(Lifetime.Singleton).AsSelf();
             
             // Register hammer booster

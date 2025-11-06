@@ -65,7 +65,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         {
             try
             {
-                _gameView.Initialize(_gameViewModel);
+                _gameView.Initialize(_gameViewModel, _levelManager);
                 _gameView.SetupStateManager(_stateManager);
                 
                 // Subscribe to level events using reactive observables
