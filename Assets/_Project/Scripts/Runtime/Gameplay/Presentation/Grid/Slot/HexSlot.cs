@@ -11,6 +11,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot {
         private GridController _gridController;
 
         public IReadOnlyList<IStack> Stacks => _hexStacks.AsReadOnly();
+        
+        public HexCoordinates GetCoordinates() {
+            return _coordinates;
+        }
 
         public void Initialize(HexCoordinates coordinates, GridController gridController) {
             _coordinates = coordinates;

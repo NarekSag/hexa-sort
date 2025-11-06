@@ -13,6 +13,17 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
         private readonly StackSortingService _sortingService;
         
         public event Action<int> OnCellsCleared;
+        
+        /// <summary>
+        /// Notifies that cells have been cleared. Can be called from outside the class.
+        /// </summary>
+        public void NotifyCellsCleared(int cellCount)
+        {
+            if (cellCount > 0)
+            {
+                OnCellsCleared?.Invoke(cellCount);
+            }
+        }
 
         public GridCleanupService(
             HexSlotRegistry slotRegistry,

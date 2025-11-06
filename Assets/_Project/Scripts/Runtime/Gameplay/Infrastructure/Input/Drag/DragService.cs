@@ -3,17 +3,28 @@ using VContainer;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.PositionCalculation;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Raycast;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.State;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Input;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Drag {
     public class DragService : MonoBehaviour {
         [Inject] private IInputService _inputService;
         [Inject] private IPositionCalculationService _positionCalculationService;
         [Inject] private IRaycastService _raycastService;
+        [Inject] private GameplayStateManager _stateManager;
+        [Inject] private BoosterInputService _boosterInputService;
         
         private IDraggable _currentDraggable;
         private Vector3 _originalPosition;
 
         private void Update() {
+            // Check if we're in booster active mode - route input to booster service
+            if (_stateManager.CurrentState.Value == GameplayState.BoosterActive) {
+                HandleBoosterInput();
+                return;
+            }
+            
+            // Normal drag/drop logic
             // Check for mouse button down
             if (_inputService.GetMouseButtonDown(0)) {
                 StartDrag();
@@ -27,6 +38,18 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Drag {
             // Check for mouse button up
             if (_inputService.GetMouseButtonUp(0)) {
                 EndDrag();
+            }
+        }
+        
+        private void HandleBoosterInput() {
+            // Check for mouse button down in booster mode
+            if (_inputService.GetMouseButtonDown(0)) {
+                Camera camera = Camera.main;
+                if (camera != null) {
+                    Vector3 mousePosition = _inputService.GetMousePosition();
+                    Ray ray = camera.ScreenPointToRay(mousePosition);
+                    _boosterInputService.HandleBoosterClick(ray);
+                }
             }
         }
 

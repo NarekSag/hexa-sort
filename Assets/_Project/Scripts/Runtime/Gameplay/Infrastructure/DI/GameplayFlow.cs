@@ -11,6 +11,9 @@ using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
 using _Project.Scripts.Runtime.Utilities.Persistence;
 using _Project.Scripts.Runtime.Utilities.Persistence.Models;
 using _Project.Scripts.Runtime.Gameplay.UI.Game;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.State;
+using _Project.Scripts.Runtime.Gameplay.Domain.Boosters;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Input;
 using Cysharp.Threading.Tasks;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
@@ -24,6 +27,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         private readonly LoadService _loadService;
         private readonly GameViewModel _gameViewModel;
         private readonly GameView _gameView;
+        private readonly GameplayStateManager _stateManager;
+        private readonly BoosterManager _boosterManager;
+        private readonly BoosterInputService _boosterInputService;
         
         private GridController _currentGridController;
         private readonly HexStackBoard _stackBoard;
@@ -37,7 +43,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             SaveService saveService,
             LoadService loadService,
             GameViewModel gameViewModel,
-            GameView gameView)
+            GameView gameView,
+            GameplayStateManager stateManager,
+            BoosterManager boosterManager,
+            BoosterInputService boosterInputService)
         {
             _hexGridFactory = hexGridFactory;
             _slotPrefab = slotPrefab;
@@ -47,6 +56,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             _loadService = loadService;
             _gameViewModel = gameViewModel;
             _gameView = gameView;
+            _stateManager = stateManager;
+            _boosterManager = boosterManager;
+            _boosterInputService = boosterInputService;
         }
 
         public async void Start()
@@ -54,7 +66,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             try
             {
                 _gameView.Initialize(_gameViewModel);
-                _gameView.SetupLevelEvents(_levelManager);
+                _gameView.SetupStateManager(_stateManager);
                 
                 // Subscribe to level events using reactive observables
                 _levelManager.OnLevelStarted
@@ -86,6 +98,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         
         private void OnLevelStarted(Core.Models.LevelData levelData)
         {   
+            // Reset booster usage for new level
+            _boosterManager.ResetUsageForLevel();
+            
+            // Set state to Playing
+            _stateManager.SetState(GameplayState.Playing);
+            
             ClearOldLevel();
             CreateNewLevel(levelData);
         }
@@ -114,6 +132,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         {
             // Create new grid with level-specific dimensions
             _currentGridController = _hexGridFactory.Create(_slotPrefab, levelData);
+            
+            // Set grid controller for booster input service
+            _boosterInputService.SetGridController(_currentGridController);
             
             // Subscribe to new grid's cleanup service
             if (_currentGridController?.CleanupService != null)
@@ -145,6 +166,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         
         private async void OnLevelCompleted(Core.Models.LevelData levelData)
         {
+            // Set state to LevelCompleted
+            _stateManager.SetState(GameplayState.LevelCompleted);
+            
             // Save progress for next level
             await SaveProgress(levelData);
             
@@ -187,9 +211,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         
         private void OnLevelFailed(Core.Models.LevelData levelData)
         {
-            CustomDebug.Log(LogCategory.Gameplay, $"Level {levelData.LevelNumber} failed!");
+            // Set state to LevelFailed
+            _stateManager.SetState(GameplayState.LevelFailed);
             
-            // TODO: Show failure UI
+            CustomDebug.Log(LogCategory.Gameplay, $"Level {levelData.LevelNumber} failed!");
         }
     }
 }

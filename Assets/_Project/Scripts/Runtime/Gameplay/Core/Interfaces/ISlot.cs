@@ -11,6 +11,11 @@ namespace _Project.Scripts.Runtime.Gameplay.Core.Interfaces {
         /// Read-only collection of stacks currently in this slot.
         /// </summary>
         IReadOnlyList<IStack> Stacks { get; }
+        
+        /// <summary>
+        /// Gets the coordinates of this slot.
+        /// </summary>
+        HexCoordinates GetCoordinates();
 
         /// <summary>
         /// Initializes the slot with its coordinates and grid controller.

@@ -145,6 +145,66 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers {
             // All slots are filled - level has failed
             return true;
         }
+        
+        /// <summary>
+        /// Destroys all stacks at the specified slot coordinates.
+        /// Used by boosters to destroy stacks.
+        /// </summary>
+        /// <param name="coordinates">The coordinates of the slot to destroy stacks at</param>
+        /// <param name="countTowardsProgression">Whether cleared cells should count towards level progression (default: true)</param>
+        public void DestroyStackAtSlot(HexCoordinates coordinates, bool countTowardsProgression = true) {
+            if (_slotRegistry == null) {
+                return;
+            }
+            
+            ISlot slot = _slotRegistry.GetSlot(coordinates);
+            if (slot == null || slot.IsEmpty()) {
+                return;
+            }
+            
+            // Count total cells before destroying
+            int totalCellsCleared = 0;
+            
+            // Create a copy of stacks list to avoid modification during iteration
+            var stacksToDestroy = new System.Collections.Generic.List<IStack>(slot.Stacks);
+            
+            // Destroy all cells in stacks, then destroy the stack GameObjects
+            foreach (IStack stackToDestroy in stacksToDestroy) {
+                if (stackToDestroy == null) {
+                    continue;
+                }
+                
+                // Count cells in this stack
+                if (stackToDestroy.Cells != null) {
+                    totalCellsCleared += stackToDestroy.Cells.Count;
+                    
+                    // Destroy all cells in the stack
+                    foreach (var cell in stackToDestroy.Cells) {
+                        if (cell != null && cell.Transform.gameObject != null) {
+                            UnityEngine.Object.Destroy(cell.Transform.gameObject);
+                        }
+                    }
+                    stackToDestroy.Cells.Clear();
+                }
+                
+                // Destroy the stack GameObject
+                if (stackToDestroy.Transform.gameObject != null) {
+                    UnityEngine.Object.Destroy(stackToDestroy.Transform.gameObject);
+                }
+            }
+            
+            // Clear all stacks from the slot
+            slot.ClearStacks();
+            
+            // Notify cleanup service about cells cleared (for level progression)
+            // Only if countTowardsProgression is true (boosters should not add points)
+            if (countTowardsProgression && totalCellsCleared > 0) {
+                _cleanupService.NotifyCellsCleared(totalCellsCleared);
+            }
+            
+            // Trigger operations complete event
+            OnOperationsComplete?.Invoke();
+        }
     }
 }
 

@@ -4,7 +4,8 @@ using _Project.Scripts.Runtime.Gameplay.UI.LevelProgression;
 using _Project.Scripts.Runtime.Gameplay.UI.Settings;
 using _Project.Scripts.Runtime.Gameplay.UI.LevelComplete;
 using _Project.Scripts.Runtime.Gameplay.UI.LevelFailed;
-using _Project.Scripts.Runtime.Gameplay.Domain.Level;
+using _Project.Scripts.Runtime.Gameplay.UI.Boosters;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.State;
 
 namespace _Project.Scripts.Runtime.Gameplay.UI.Game
 {
@@ -14,96 +15,65 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Game
         [SerializeField] private SettingsView _settingsView;
         [SerializeField] private LevelCompletedView _levelCompleteView;
         [SerializeField] private LevelFailedView _levelFailedView;
+        [SerializeField] private BoosterSelectionView _boosterSelectionView;
+        [SerializeField] private BoosterView _boosterView;
         
         private GameViewModel _viewModel;
-        private LevelManager _levelManager;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
         
         public void Initialize(GameViewModel viewModel)
         {
             _viewModel = viewModel;
-            
-            // Initialize child views with their respective ViewModels
-            if (_levelProgressionView != null)
-            {
-                _levelProgressionView.Initialize(_viewModel.LevelProgressionViewModel);
-            }
-            
-            if (_settingsView != null)
-            {
-                _settingsView.Initialize(_viewModel.SettingsViewModel);
-            }
-            
-            if (_levelCompleteView != null)
-            {
-                _levelCompleteView.Initialize(_viewModel.LevelCompleteViewModel);
-            }
-            
-            if (_levelFailedView != null)
-            {
-                _levelFailedView.Initialize(_viewModel.LevelFailedViewModel);
-            }
+            InitializeView(_levelProgressionView, _viewModel.LevelProgressionViewModel);
+            InitializeView(_settingsView, _viewModel.SettingsViewModel);
+            InitializeView(_levelCompleteView, _viewModel.LevelCompleteViewModel);
+            InitializeView(_levelFailedView, _viewModel.LevelFailedViewModel);
+            InitializeView(_boosterSelectionView, _viewModel.BoosterSelectionViewModel);
+            InitializeView(_boosterView, _viewModel.BoosterViewModel);
         }
         
-        public void SetupLevelEvents(LevelManager levelManager)
+        public void SetupStateManager(GameplayStateManager stateManager)
         {
-            _levelManager = levelManager;
-            
-            // Subscribe to level events
-            _levelManager.OnLevelStarted
-                .Subscribe(_ => OnLevelStarted())
-                .AddTo(_disposables);
-            
-            _levelManager.OnLevelCompleted
-                .Subscribe(_ => OnLevelCompleted())
-                .AddTo(_disposables);
-            
-            _levelManager.OnLevelFailed
-                .Subscribe(_ => OnLevelFailed())
-                .AddTo(_disposables);
+            stateManager.CurrentState.Subscribe(OnGameplayStateChanged).AddTo(_disposables);
         }
         
-        private void OnLevelStarted()
+        private void InitializeView<T>(IView<T> view, T viewModel) where T : IViewModel
         {
-            // Hide both panels when level starts
-            if (_levelCompleteView != null)
-            {
-                _levelCompleteView.Hide();
-            }
-            
-            if (_levelFailedView != null)
-            {
-                _levelFailedView.Hide();
-            }
+            view?.Initialize(viewModel);
         }
         
-        private void OnLevelCompleted()
+        private void OnGameplayStateChanged(GameplayState state)
         {
-            // Show level complete panel
-            if (_levelCompleteView != null)
+            // Handle booster views
+            bool isBoosterActive = state == GameplayState.BoosterActive;
+            if (isBoosterActive)
             {
-                _levelCompleteView.Show();
+                _boosterSelectionView?.Hide();
+                _boosterView?.Show();
+            }
+            else
+            {
+                _boosterSelectionView?.Show();
+                _boosterView?.Hide();
             }
             
-            // Hide level failed panel
-            if (_levelFailedView != null)
+            // Handle level complete/failed views
+            switch (state)
             {
-                _levelFailedView.Hide();
-            }
-        }
-        
-        private void OnLevelFailed()
-        {
-            // Show level failed panel
-            if (_levelFailedView != null)
-            {
-                _levelFailedView.Show();
-            }
-            
-            // Hide level complete panel
-            if (_levelCompleteView != null)
-            {
-                _levelCompleteView.Hide();
+                case GameplayState.Playing:
+                    _levelCompleteView?.Hide();
+                    _levelFailedView?.Hide();
+                    break;
+                    
+                case GameplayState.LevelCompleted:
+                    _levelCompleteView?.Show();
+                    _levelFailedView?.Hide();
+                    break;
+                    
+                case GameplayState.LevelFailed:
+                    _levelFailedView?.Show();
+                    _levelCompleteView?.Hide();
+                    break;
             }
         }
         
