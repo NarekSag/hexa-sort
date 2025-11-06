@@ -57,7 +57,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot
 
             if (_supportsEmission)
             {
+                // Enable emission keyword
                 _highlightMaterial.EnableKeyword("_EMISSION");
+                
+                // Set Global Illumination flags to ensure emission works on all platforms
+                _highlightMaterial.globalIlluminationFlags = MaterialGlobalIlluminationFlags.RealtimeEmissive;
+                
+                // Apply emission color
                 _highlightMaterial.SetColor("_EmissionColor", _highlightColor * _highlightIntensity);
             }
             else if (_supportsBaseColor)
