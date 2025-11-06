@@ -5,6 +5,7 @@ using _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Raycast;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.State;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.Input;
+using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Drag {
     public class DragService : MonoBehaviour {
@@ -16,6 +17,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Drag {
         
         private IDraggable _currentDraggable;
         private Vector3 _originalPosition;
+        private HexSlot _currentlyHighlightedSlot;
 
         private void Update() {
             // Check if we're in booster active mode - route input to booster service
@@ -44,21 +46,24 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Drag {
         private void HandleBoosterInput() {
             // Check for mouse button down in booster mode
             if (_inputService.GetMouseButtonDown(0)) {
-                Camera camera = Camera.main;
-                if (camera != null) {
+                Camera mainCamera = Camera.main;
+                if (mainCamera != null) {
                     Vector3 mousePosition = _inputService.GetMousePosition();
-                    Ray ray = camera.ScreenPointToRay(mousePosition);
+                    Ray ray = mainCamera.ScreenPointToRay(mousePosition);
                     _boosterInputService.HandleBoosterClick(ray);
                 }
             }
         }
 
         private void StartDrag() {
-            Camera camera = Camera.main;
-            if (camera == null) return;
+            // Clear any existing highlight when starting a new drag
+            ClearHighlight();
+            
+            Camera mainCamera = Camera.main;
+            if (mainCamera == null) return;
 
             Vector3 mousePosition = _inputService.GetMousePosition();
-            Ray ray = camera.ScreenPointToRay(mousePosition);
+            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
 
             // Use RaycastService to find a draggable object
             if (_raycastService.RaycastToDraggable(ray, out IDraggable draggable)) {
@@ -76,16 +81,68 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Drag {
             Vector3 worldPosition = _positionCalculationService.ScreenToWorldPosition(mousePosition, _originalPosition.y / 2);
             
             _currentDraggable.SetPosition(worldPosition);
+            
+            // Check for hovered slots and highlight empty ones
+            UpdateSlotHighlight();
+        }
+        
+        private void UpdateSlotHighlight() {
+            if (_currentDraggable == null) {
+                ClearHighlight();
+                return;
+            }
+            
+            Camera mainCamera = Camera.main;
+            if (mainCamera == null) {
+                ClearHighlight();
+                return;
+            }
+            
+            Vector3 mousePosition = _inputService.GetMousePosition();
+            Ray ray = mainCamera.ScreenPointToRay(mousePosition);
+            
+            // Get colliders from the current draggable to ignore them in the raycast
+            Collider[] collidersToIgnore = null;
+            if (_currentDraggable is MonoBehaviour draggableMono) {
+                collidersToIgnore = draggableMono.GetComponentsInChildren<Collider>();
+            }
+            
+            // Check if we're hovering over a placement target
+            if (_raycastService.RaycastToPlacementTarget(ray, collidersToIgnore, out IPlacementTarget placementTarget)) {
+                // Check if it's a slot and if it can accept the current draggable
+                if (placementTarget is HexSlot slot && slot.IsEmpty()) {
+                    // Check if the slot can accept this draggable
+                    if (placementTarget.CanAccept(_currentDraggable, out Vector3 _)) {
+                        // Highlight this slot if it's different from the currently highlighted one
+                        if (_currentlyHighlightedSlot != slot) {
+                            ClearHighlight();
+                            _currentlyHighlightedSlot = slot;
+                            slot.SetHighlighted(true);
+                        }
+                        return;
+                    }
+                }
+            }
+            
+            // Not hovering over a valid empty slot, clear highlight
+            ClearHighlight();
+        }
+        
+        private void ClearHighlight() {
+            if (_currentlyHighlightedSlot != null) {
+                _currentlyHighlightedSlot.RemoveHighlight();
+                _currentlyHighlightedSlot = null;
+            }
         }
 
         private void EndDrag() {
             if (_currentDraggable == null) return;
 
-            Camera camera = Camera.main;
-            if (camera != null) 
+            Camera mainCamera = Camera.main;
+            if (mainCamera != null) 
             {
                 Vector3 mousePosition = _inputService.GetMousePosition();
-                Ray ray = camera.ScreenPointToRay(mousePosition);
+                Ray ray = mainCamera.ScreenPointToRay(mousePosition);
 
                 // Get colliders from the current draggable to ignore them in the raycast
                 Collider[] collidersToIgnore = null;
@@ -125,6 +182,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Drag {
                 _currentDraggable.SetPosition(_originalPosition);
             }
 
+            // Clear any highlight when drag ends
+            ClearHighlight();
             _currentDraggable = null;
         }
     }

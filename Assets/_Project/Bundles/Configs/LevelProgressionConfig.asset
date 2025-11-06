@@ -49,4 +49,4 @@ MonoBehaviour:
     MaxStackHeight: 5
   _baseCellsToClear: 0
   _cellsToClearIncrement: 25
-  _maxCellsToClear: 500
+  _maxCellsToClear: 1000

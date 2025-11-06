@@ -1,12 +1,10 @@
 using System;
 
-namespace _Project.Scripts.Runtime.Gameplay.Core.Models {
-    /// <summary>
-    /// Represents the color type of a hexagon cell.
-    /// Used for color matching and sorting logic.
-    /// </summary>
+namespace _Project.Scripts.Runtime.Gameplay.Core.Models
+{
     [Serializable]
-    public enum ColorType {
+    public enum ColorType
+    {
         Red,
         Blue,
         Green,
