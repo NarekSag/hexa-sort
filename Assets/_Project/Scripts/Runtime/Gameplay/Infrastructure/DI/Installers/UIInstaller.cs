@@ -15,7 +15,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             {
                 builder.RegisterComponent(_gameView);
             }
-            
+
             builder.Register<GameViewModel>(Lifetime.Scoped);
         }
     }

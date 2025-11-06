@@ -39,30 +39,27 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input
             }
             
             // Use RaycastService to find a slot
-            if (_raycastService.RaycastToPlacementTarget(ray, out IPlacementTarget placementTarget))
+            if (_raycastService.RaycastToPlacementTarget(ray, out ISlot slot))
             {
-                if (placementTarget is ISlot slot)
+                // Check if slot is not empty
+                if (!slot.IsEmpty())
                 {
-                    // Check if slot is not empty
-                    if (!slot.IsEmpty())
+                    // Get coordinates from slot
+                    HexCoordinates coordinates = slot.GetCoordinates();
+                    
+                    // Destroy stack at slot (don't count towards progression)
+                    _gridController.DestroyStackAtSlot(coordinates, countTowardsProgression: false);
+                    
+                    // Mark booster as used
+                    var activeBooster = _boosterManager.ActiveBooster;
+                    if (activeBooster != null)
                     {
-                        // Get coordinates from slot
-                        HexCoordinates coordinates = slot.GetCoordinates();
-                        
-                        // Destroy stack at slot (don't count towards progression)
-                        _gridController.DestroyStackAtSlot(coordinates, countTowardsProgression: false);
-                        
-                        // Mark booster as used
-                        var activeBooster = _boosterManager.ActiveBooster;
-                        if (activeBooster != null)
-                        {
-                            _boosterManager.MarkBoosterAsUsed(activeBooster.Id);
-                        }
-                        
-                        // Return to playing state
-                        _stateManager.SetState(GameplayState.Playing);
-                        _boosterManager.ClearActiveBooster();
+                        _boosterManager.MarkBoosterAsUsed(activeBooster.Id);
                     }
+                    
+                    // Return to playing state
+                    _stateManager.SetState(GameplayState.Playing);
+                    _boosterManager.ClearActiveBooster();
                 }
             }
         }

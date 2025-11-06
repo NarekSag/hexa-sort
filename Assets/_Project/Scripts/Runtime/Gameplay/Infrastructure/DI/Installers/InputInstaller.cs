@@ -17,7 +17,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         {
             // Register InputActionAsset
             builder.RegisterComponent(_dragService).AsSelf();
-            
+
             // Input Services
             builder.Register<IInputService, InputService>(Lifetime.Scoped);
             builder.Register<IRaycastService, RaycastService>(Lifetime.Scoped);

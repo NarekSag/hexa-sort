@@ -20,7 +20,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
 
         public void Initialize(HexStackFactory stackFactory, LevelData levelData = null)
         {
-            _stackFactory = stackFactory; 
+            _stackFactory = stackFactory;
             _currentLevelData = levelData;
 
             CreateStack();
@@ -35,26 +35,29 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
         {
             if (_stackFactory == null)
             {
-                CustomDebug.LogError(LogCategory.Gameplay, $"StackSpawnPoint ({gameObject.name}): StackFactory is NULL!");
+                CustomDebug.LogError(LogCategory.Gameplay,
+                    $"StackSpawnPoint ({gameObject.name}): StackFactory is NULL!");
                 return;
             }
 
             // Don't create if we already have a stack
             if (_currentStack != null)
             {
-                CustomDebug.Log(LogCategory.Gameplay, $"StackSpawnPoint ({gameObject.name}): Already has a stack, skipping creation");
+                CustomDebug.Log(LogCategory.Gameplay,
+                    $"StackSpawnPoint ({gameObject.name}): Already has a stack, skipping creation");
                 return;
             }
 
             _currentStack = _stackFactory.CreateRandomStack(transform, transform.position, _currentLevelData);
-            
+
             if (_currentStack != null)
             {
                 _currentStack.OnPlaced += OnCurrentStackPlaced;
             }
             else
             {
-                CustomDebug.LogError(LogCategory.Gameplay, $"StackSpawnPoint ({gameObject.name}): Factory returned NULL stack!");
+                CustomDebug.LogError(LogCategory.Gameplay,
+                    $"StackSpawnPoint ({gameObject.name}): Factory returned NULL stack!");
             }
         }
 
@@ -65,7 +68,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
                 // Store reference before unsubscribing (which sets _currentStack to null)
                 var stackToDestroy = _currentStack;
                 UnsubscribeFromStack();
-                
+
                 if (stackToDestroy != null && stackToDestroy.Transform.gameObject != null)
                 {
                     Destroy(stackToDestroy.Transform.gameObject);

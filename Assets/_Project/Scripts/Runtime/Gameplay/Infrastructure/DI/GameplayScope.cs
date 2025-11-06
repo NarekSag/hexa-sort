@@ -39,12 +39,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             builder.Register<HexGridFactory>(Lifetime.Scoped);
             builder.Register<HexStackFactory>(Lifetime.Scoped);
         }
-        
+
         private void RegisterManagers(IContainerBuilder builder)
         {
             builder.Register<LevelManager>(Lifetime.Singleton);
         }
-        
+
         private void RegisterInputServices(IContainerBuilder builder)
         {
             builder.Register<BoosterInputService>(Lifetime.Scoped);
@@ -60,7 +60,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             _inputInstaller.Install(builder);
             _configInstaller.Install(builder);
             _uiInstaller.Install(builder);
-            
+
             // Install booster-related services directly
             var boosterInstaller = new BoosterInstaller();
             boosterInstaller.Install(builder);

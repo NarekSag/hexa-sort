@@ -70,7 +70,8 @@ namespace _Project.Scripts.Runtime.Utilities.Persistence
                 // Switch back to main thread
                 await UniTask.SwitchToMainThread();
 
-                CustomDebug.Log(LogCategory.Persistence, $"Save data reset successfully. File deleted: {_saveFilePath}");
+                CustomDebug.Log(LogCategory.Persistence,
+                    $"Save data reset successfully. File deleted: {_saveFilePath}");
             }
             catch (Exception e)
             {

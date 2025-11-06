@@ -57,7 +57,8 @@ namespace _Project.Scripts.Runtime.Utilities.Persistence
             }
             catch (Exception e)
             {
-                CustomDebug.LogError(LogCategory.Persistence, $"Failed to load game data: {e.Message}. Returning default data.", e);
+                CustomDebug.LogError(LogCategory.Persistence,
+                    $"Failed to load game data: {e.Message}. Returning default data.", e);
                 return new GameSaveData();
             }
         }

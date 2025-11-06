@@ -19,19 +19,19 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Game
         [SerializeField] private LevelFailedView _levelFailedView;
         [SerializeField] private BoosterSelectionView _boosterSelectionView;
         [SerializeField] private BoosterView _boosterView;
-        
+
         private GameViewModel _viewModel;
         private BoosterManager _boosterManager;
         private LevelManager _levelManager;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
-        
+
         // IView interface implementation
         public void Initialize(GameViewModel viewModel)
         {
             _viewModel = viewModel;
             InitializeViews();
         }
-        
+
         // Overload with dependencies
         public void Initialize(GameViewModel viewModel, LevelManager levelManager)
         {
@@ -40,7 +40,7 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Game
             _boosterManager = viewModel.BoosterManager;
             InitializeViews();
         }
-        
+
         private void InitializeViews()
         {
             InitializeView(_levelProgressionView, _viewModel.LevelProgressionViewModel);
@@ -48,7 +48,7 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Game
             InitializeView(_levelCompleteView, _viewModel.LevelCompleteViewModel);
             InitializeView(_levelFailedView, _viewModel.LevelFailedViewModel);
             InitializeView(_boosterView, _viewModel.BoosterViewModel);
-            
+
             // Initialize booster selection view with dependencies
             if (_boosterManager != null && _levelManager != null)
             {
@@ -59,17 +59,17 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Game
                 _boosterSelectionView?.Initialize(_viewModel.BoosterSelectionViewModel);
             }
         }
-        
+
         public void SetupStateManager(GameplayStateManager stateManager)
         {
             stateManager.CurrentState.Subscribe(OnGameplayStateChanged).AddTo(_disposables);
         }
-        
+
         private void InitializeView<T>(IView<T> view, T viewModel) where T : IViewModel
         {
             view?.Initialize(viewModel);
         }
-        
+
         private void OnGameplayStateChanged(GameplayState state)
         {
             // Handle booster views
@@ -84,7 +84,7 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Game
                 _boosterSelectionView?.Show();
                 _boosterView?.Hide();
             }
-            
+
             // Handle level complete/failed views
             switch (state)
             {
@@ -92,19 +92,19 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Game
                     _levelCompleteView?.Hide();
                     _levelFailedView?.Hide();
                     break;
-                    
+
                 case GameplayState.LevelCompleted:
                     _levelCompleteView?.Show();
                     _levelFailedView?.Hide();
                     break;
-                    
+
                 case GameplayState.LevelFailed:
                     _levelFailedView?.Show();
                     _levelCompleteView?.Hide();
                     break;
             }
         }
-        
+
         private void OnDestroy()
         {
             _disposables?.Dispose();

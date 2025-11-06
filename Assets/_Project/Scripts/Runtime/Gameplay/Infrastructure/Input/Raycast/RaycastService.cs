@@ -5,12 +5,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Raycast {
     public class RaycastService : IRaycastService {
         private const float MaxRaycastDistance = 1000f;
 
-        public bool RaycastToPlacementTarget(Ray ray, out IPlacementTarget placementTarget) {
-            return RaycastToPlacementTarget(ray, null, out placementTarget);
+        public bool RaycastToPlacementTarget(Ray ray, out ISlot slot) {
+            return RaycastToPlacementTarget(ray, null, out slot);
         }
 
-        public bool RaycastToPlacementTarget(Ray ray, Collider[] ignoreColliders, out IPlacementTarget placementTarget) {
-            placementTarget = null;
+        public bool RaycastToPlacementTarget(Ray ray, Collider[] ignoreColliders, out ISlot slot) {
+            slot = null;
 
             // Use RaycastAll to get all hits, allowing us to ignore specific colliders
             RaycastHit[] hits = Physics.RaycastAll(ray, MaxRaycastDistance);
@@ -21,9 +21,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Raycast {
                     continue;
                 }
                 
-                IPlacementTarget target = hit.collider.GetComponent<IPlacementTarget>();
+                ISlot target = hit.collider.GetComponent<ISlot>();
                 if (target != null) {
-                    placementTarget = target;
+                    slot = target;
                     return true;
                 }
             }

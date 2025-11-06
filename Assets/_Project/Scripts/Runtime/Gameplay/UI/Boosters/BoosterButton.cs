@@ -36,23 +36,23 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Boosters
             {
                 _button.interactable = !isLocked;
             }
-            
+
             if (_lockOverlay != null)
             {
                 _lockOverlay.SetActive(isLocked);
             }
-            
+
             if (_unlockLevelText != null && isLocked)
             {
                 _unlockLevelText.text = $"Level {unlockLevel}";
             }
         }
-        
+
         private void SetUnlocked()
         {
             SetLocked(false, 0);
         }
-        
+
         private void SetIcon(BoosterType boosterType, BoosterIconConfig iconConfig)
         {
             if (_iconImage != null)

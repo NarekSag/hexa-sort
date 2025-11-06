@@ -1,6 +1,5 @@
 using UniRx;
 using _Project.Scripts.Runtime.Gameplay.Domain.Level;
-using _Project.Scripts.Runtime.Gameplay.UI;
 
 namespace _Project.Scripts.Runtime.Gameplay.UI.LevelComplete
 {

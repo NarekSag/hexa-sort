@@ -2,7 +2,6 @@ using UnityEngine;
 using UnityEngine.UI;
 using TMPro;
 using UniRx;
-using _Project.Scripts.Runtime.Gameplay.UI;
 
 namespace _Project.Scripts.Runtime.Gameplay.UI.LevelFailed
 {

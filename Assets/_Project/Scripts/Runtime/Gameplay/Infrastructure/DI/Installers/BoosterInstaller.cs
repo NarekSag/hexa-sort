@@ -11,14 +11,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         {
             // Register state manager
             builder.Register<GameplayStateManager>(Lifetime.Singleton);
-            
+
             // Register booster manager
             builder.Register<BoosterManager>(Lifetime.Singleton).AsSelf();
-            
+
             // Register all boosters
             builder.Register<HammerBooster>(Lifetime.Singleton).AsSelf();
             builder.Register<ShuffleBooster>(Lifetime.Singleton).AsSelf();
-            
+
             // Configure booster manager to register all boosters
             builder.RegisterBuildCallback(resolver =>
             {

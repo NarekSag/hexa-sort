@@ -30,13 +30,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         private readonly GameplayStateManager _stateManager;
         private readonly BoosterManager _boosterManager;
         private readonly BoosterInputService _boosterInputService;
-        
+
         private GridController _currentGridController;
         private readonly HexStackBoard _stackBoard;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
-        
+
         public GameplayFlow(
-            HexGridFactory hexGridFactory, 
+            HexGridFactory hexGridFactory,
             HexSlot slotPrefab,
             LevelManager levelManager,
             HexStackBoard stackBoard,
@@ -67,20 +67,20 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             {
                 _gameView.Initialize(_gameViewModel, _levelManager);
                 _gameView.SetupStateManager(_stateManager);
-                
+
                 // Subscribe to level events using reactive observables
                 _levelManager.OnLevelStarted
                     .Subscribe(OnLevelStarted)
                     .AddTo(_disposables);
-                
+
                 _levelManager.OnLevelCompleted
                     .Subscribe(OnLevelCompleted)
                     .AddTo(_disposables);
-                
+
                 _levelManager.OnLevelFailed
                     .Subscribe(OnLevelFailed)
                     .AddTo(_disposables);
-                
+
                 // Load saved level
                 var saveData = await _loadService.LoadGameData();
                 _levelManager.StartLevel(saveData.CurrentLevel);
@@ -90,20 +90,20 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
                 CustomDebug.LogError(LogCategory.Gameplay, $"GameplayFlow Start Failed: {e.Message}");
             }
         }
-        
+
         public void Dispose()
         {
             _disposables?.Dispose();
         }
-        
+
         private void OnLevelStarted(Core.Models.LevelData levelData)
-        {   
+        {
             // Reset booster usage for new level
             _boosterManager.ResetUsageForLevel();
-            
+
             // Set state to Playing
             _stateManager.SetState(GameplayState.Playing);
-            
+
             ClearOldLevel();
             CreateNewLevel(levelData);
         }
@@ -117,9 +117,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
                 {
                     _currentGridController.CleanupService.OnCellsCleared -= OnCellsCleared;
                 }
-                
+
                 _currentGridController.OnOperationsComplete -= CheckForLevelFailure;
-                
+
                 // Destroy old grid
                 if (_currentGridController.GridTransform != null)
                 {
@@ -132,22 +132,22 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         {
             // Create new grid with level-specific dimensions
             _currentGridController = _hexGridFactory.Create(_slotPrefab, levelData);
-            
+
             // Set grid controller for booster input service
             _boosterInputService.SetGridController(_currentGridController);
-            
+
             // Subscribe to new grid's cleanup service
             if (_currentGridController?.CleanupService != null)
             {
                 _currentGridController.CleanupService.OnCellsCleared += OnCellsCleared;
             }
-            
+
             // Subscribe to grid operations complete to check for failure
             if (_currentGridController != null)
             {
                 _currentGridController.OnOperationsComplete += CheckForLevelFailure;
             }
-            
+
             // Initialize or update stack board with level data
             if (_stackBoard != null)
             {
@@ -156,38 +156,38 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
                 _stackBoard.ShuffleStacks();
             }
         }
-        
+
         private void OnCellsCleared(int cellCount)
         {
             // Notify level manager how many cells were cleared
             _levelManager.NotifyCellsCleared(cellCount);
-            
+
             // Check for failure condition after cleanup
             CheckForLevelFailure();
         }
-        
+
         private async void OnLevelCompleted(Core.Models.LevelData levelData)
         {
             // Set state to LevelCompleted
             _stateManager.SetState(GameplayState.LevelCompleted);
-            
+
             // Save progress for next level
             await SaveProgress(levelData);
         }
-        
+
         private void CheckForLevelFailure()
         {
             if (_currentGridController == null || _levelManager == null)
             {
                 return;
             }
-            
+
             // Don't check if level is already completed or failed
             if (_levelManager.CurrentLevel.Value == null)
             {
                 return;
             }
-            
+
             // Check if level has failed: all slots are filled (all cells on grid are not empty)
             if (_currentGridController.IsLevelFailed())
             {
@@ -207,12 +207,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
                 CustomDebug.LogError(LogCategory.Gameplay, $"Failed to save progress: {e.Message}");
             }
         }
-        
+
         private void OnLevelFailed(Core.Models.LevelData levelData)
         {
             // Set state to LevelFailed
             _stateManager.SetState(GameplayState.LevelFailed);
-            
+
             CustomDebug.Log(LogCategory.Gameplay, $"Level {levelData.LevelNumber} failed!");
         }
     }

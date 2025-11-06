@@ -6,7 +6,7 @@ using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers;
 
 namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot
 {
-    public class HexSlot : MonoBehaviour, ISlot, IPlacementTarget
+    public class HexSlot : MonoBehaviour, ISlot
     {
         private readonly List<IStack> _hexStacks = new List<IStack>();
         private HexCoordinates _coordinates;
