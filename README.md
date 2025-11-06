@@ -16,7 +16,7 @@ The project uses VContainer (DI container) as its Composition Root for dependenc
 
 ---
 
-## 🎮 Overview
+## 🎮 Overview {#overview}
 
 Hexa Sort is a puzzle game where players sort colored hexagonal cells by dragging stacks onto a hexagonal grid. The game features:
 
@@ -29,7 +29,7 @@ Hexa Sort is a puzzle game where players sort colored hexagonal cells by draggin
 
 ---
 
-## 📁 Project Structure
+## 📁 Project Structure {#project-structure}
 
 ```
 Assets/_Project/Scripts/
@@ -87,7 +87,7 @@ Assets/_Project/Scripts/
 
 ---
 
-## 🏗️ Architecture
+## 🏗️ Architecture {#architecture}
 
 ### Architecture Pattern
 
@@ -140,7 +140,7 @@ Example:
 - `LevelCompletedView` + `LevelCompletedViewModel`
 - `BoosterView` + `BoosterViewModel`
 
-## 🎯 Core Systems
+## 🎯 Core Systems {#core-systems}
 
 ### 1. Bootstrap System
 
@@ -280,7 +280,7 @@ BootstrapScene → BootstrapScope → BootstrapFlow → Load Config → Gameplay
 
 ---
 
-## 🎮 Game Mechanics
+## 🎮 Game Mechanics {#game-mechanics}
 
 ### Core Gameplay
 
@@ -316,7 +316,7 @@ BootstrapScene → BootstrapScope → BootstrapFlow → Load Config → Gameplay
   - Cells to clear (objective)
 - Progress is saved automatically after level completion
 
-## 🔧 Configuration
+## 🔧 Configuration {#configuration}
 
 The project uses **ScriptableObjects** for configuration:
 
@@ -330,7 +330,7 @@ These can be found in `Assets/_Project/Bundles/Configs/` and should be created a
 
 ---
 
-## 🛠️ Third-Party Libraries
+## 🛠️ Third-Party Libraries {#third-party-libraries}
 
 #### Dependency Injection
 - **VContainer** (`jp.hadashikick.vcontainer` v1.17.0)
@@ -358,7 +358,7 @@ These can be found in `Assets/_Project/Bundles/Configs/` and should be created a
 
 ---
 
-## 🐛 Known Issues and Possible Improvements
+## 🐛 Known Issues and Possible Improvements {#known-issues-and-possible-improvements}
 
 This section documents known issues and areas for improvement in the current implementation.
 
