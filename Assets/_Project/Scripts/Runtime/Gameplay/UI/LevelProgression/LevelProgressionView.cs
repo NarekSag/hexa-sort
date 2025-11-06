@@ -9,6 +9,7 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.LevelProgression
     {
         [SerializeField] private Slider _progressSlider;
         [SerializeField] private TextMeshProUGUI _progressText;
+        [SerializeField] private TextMeshProUGUI _levelText;
         
         private LevelProgressionViewModel _viewModel;
         private readonly CompositeDisposable _disposables = new CompositeDisposable();
@@ -29,6 +30,11 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.LevelProgression
             // Bind progress slider value
             _viewModel.ProgressValue
                 .Subscribe(value => _progressSlider.value = value)
+                .AddTo(_disposables);
+            
+            // Bind level text
+            _viewModel.LevelText
+                .Subscribe(text => _levelText.text = text)
                 .AddTo(_disposables);
         }
         

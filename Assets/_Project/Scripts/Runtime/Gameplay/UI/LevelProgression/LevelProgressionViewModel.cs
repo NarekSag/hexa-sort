@@ -12,11 +12,13 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.LevelProgression
         private readonly ReadOnlyReactiveProperty<int> _goalCells;
         private readonly ReadOnlyReactiveProperty<string> _progressText;
         private readonly ReadOnlyReactiveProperty<float> _progressValue;
+        private readonly ReadOnlyReactiveProperty<string> _levelText;
         
         public IReadOnlyReactiveProperty<int> CurrentCellsCleared => _currentCellsCleared;
         public IReadOnlyReactiveProperty<int> GoalCells => _goalCells;
         public IReadOnlyReactiveProperty<string> ProgressText => _progressText;
         public IReadOnlyReactiveProperty<float> ProgressValue => _progressValue;
+        public IReadOnlyReactiveProperty<string> LevelText => _levelText;
         
         public LevelProgressionViewModel(LevelManager levelManager)
         {
@@ -44,6 +46,12 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.LevelProgression
             // Progress value (0-1 for slider)
             _progressValue = _levelManager.Progress
                 .ToReadOnlyReactiveProperty(0f)
+                .AddTo(_disposables);
+            
+            // Level text (format: "LEVEL 1")
+            _levelText = _levelManager.CurrentLevel
+                .Select(level => level != null ? $"LEVEL {level.LevelNumber}" : "LEVEL 0")
+                .ToReadOnlyReactiveProperty("LEVEL 0")
                 .AddTo(_disposables);
         }
         
