@@ -21,7 +21,7 @@ MonoBehaviour:
     MinColors: 0
     MaxColors: 2
     AvailableColors: 0000000001000000
-    MinStackHeight: 0
+    MinStackHeight: 2
     MaxStackHeight: 5
   - StartLevel: 2
     GridWidth: 3
@@ -29,7 +29,7 @@ MonoBehaviour:
     MinColors: 0
     MaxColors: 3
     AvailableColors: 000000000100000002000000
-    MinStackHeight: 0
+    MinStackHeight: 2
     MaxStackHeight: 5
   _baseCellsToClear: 0
   _cellsToClearIncrement: 10

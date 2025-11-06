@@ -22,8 +22,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
             int maxHeight = levelData?.MaxStackHeight ?? 6;
             ColorType[] availableColors = levelData?.AvailableColors ?? new[] { ColorType.Red, ColorType.Blue };
             
-            // Ensure minimum height is at least 1 to prevent empty stacks
-            minHeight = Mathf.Max(1, minHeight);
+            // Ensure minimum height is at least 2 to match Range constraint and prevent invalid stacks
+            minHeight = Mathf.Max(2, minHeight);
             maxHeight = Mathf.Max(minHeight, maxHeight);
             
             int cellCount = Random.Range(minHeight, maxHeight + 1);
