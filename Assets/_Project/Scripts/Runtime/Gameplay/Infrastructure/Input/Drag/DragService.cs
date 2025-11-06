@@ -15,6 +15,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Drag
         [Inject] private IRaycastService _raycastService;
         [Inject] private GameplayStateManager _stateManager;
         [Inject] private BoosterInputService _boosterInputService;
+        [Inject] private DropService _dropService;
 
         private IDraggable _currentDraggable;
         private Vector3 _originalPosition;
@@ -163,49 +164,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Input.Drag
         {
             if (_currentDraggable == null) return;
 
-            Camera mainCamera = Camera.main;
-            if (mainCamera != null)
-            {
-                Vector3 mousePosition = _inputService.GetMousePosition();
-                Ray ray = mainCamera.ScreenPointToRay(mousePosition);
-
-                // Get colliders from the current draggable to ignore them in the raycast
-                Collider[] collidersToIgnore = null;
-                if (_currentDraggable is MonoBehaviour draggableMono)
-                {
-                    collidersToIgnore = draggableMono.GetComponentsInChildren<Collider>();
-                }
-
-                // Use RaycastService to find a slot, ignoring current draggable's colliders
-                if (_raycastService.RaycastToPlacementTarget(ray, collidersToIgnore, out ISlot slot))
-                {
-                    if (slot.CanAccept(_currentDraggable, out Vector3 targetPosition))
-                    {
-                        _currentDraggable.SetPosition(targetPosition);
-
-                        // Register the stack with the slot
-                        if (_currentDraggable is IStack stack)
-                        {
-                            slot.SetStack(stack);
-                        }
-                    }
-                    else
-                    {
-                        // Cannot accept this draggable, snap back to original position
-                        _currentDraggable.SetPosition(_originalPosition);
-                    }
-                }
-                else
-                {
-                    // Not over a slot, snap back to original position
-                    _currentDraggable.SetPosition(_originalPosition);
-                }
-            }
-            else
-            {
-                // No camera, just snap back
-                _currentDraggable.SetPosition(_originalPosition);
-            }
+            // Use DropService to handle the drop logic
+            _dropService.TryDrop(_currentDraggable, _originalPosition, out Vector3 _);
 
             // Clear any highlight when drag ends
             ClearHighlight();

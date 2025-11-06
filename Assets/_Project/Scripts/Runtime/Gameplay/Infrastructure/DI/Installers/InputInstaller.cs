@@ -22,6 +22,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             builder.Register<IInputService, InputService>(Lifetime.Scoped);
             builder.Register<IRaycastService, RaycastService>(Lifetime.Scoped);
             builder.Register<IPositionCalculationService, PositionCalculationService>(Lifetime.Scoped);
+            builder.Register<DropService>(Lifetime.Scoped);
         }
     }
 }
