@@ -14,6 +14,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers {
         private readonly GridRecursionService _recursionService;
         private readonly GridCleanupService _cleanupService;
         
+        // Queue system to prevent concurrent operations
+        private readonly Queue<HexCoordinates> _operationQueue = new Queue<HexCoordinates>();
+        private bool _isProcessing = false;
+        
         public Transform GridTransform { get; private set; }
         public GridCleanupService CleanupService => _cleanupService;
         
@@ -39,7 +43,29 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers {
         }
 
         public void CheckNeighborsAndSort(HexCoordinates slotCoordinates) {
-            CheckNeighborsAndSortRecursive(slotCoordinates, new HashSet<HexCoordinates>(), 0).Forget();
+            // Add to queue and start processing if not already running
+            _operationQueue.Enqueue(slotCoordinates);
+            
+            if (!_isProcessing) {
+                ProcessQueue().Forget();
+            }
+        }
+        
+        private async UniTask ProcessQueue() {
+            if (_isProcessing) {
+                return;
+            }
+            
+            _isProcessing = true;
+            
+            try {
+                while (_operationQueue.Count > 0) {
+                    HexCoordinates coordinates = _operationQueue.Dequeue();
+                    await CheckNeighborsAndSortRecursive(coordinates, new HashSet<HexCoordinates>(), 0);
+                }
+            } finally {
+                _isProcessing = false;
+            }
         }
 
         private async UniTask CheckNeighborsAndSortRecursive(

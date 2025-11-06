@@ -42,13 +42,17 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
                     continue;
                 }
 
+                // Create snapshots of stacks to avoid collection modification during async operations
+                var currentStacks = new List<IStack>(slot.Stacks);
+                var neighborStacks = new List<IStack>(neighborSlot.Stacks);
+
                 // Process each stack in current slot with each stack in neighbor slot
-                foreach (IStack currentStack in slot.Stacks) {
+                foreach (IStack currentStack in currentStacks) {
                     if (currentStack == null || currentStack.Cells == null || currentStack.Cells.Count == 0) {
                         continue;
                     }
 
-                    foreach (IStack neighborStack in neighborSlot.Stacks) {
+                    foreach (IStack neighborStack in neighborStacks) {
                         if (neighborStack == null || neighborStack.Cells == null || neighborStack.Cells.Count == 0) {
                             continue;
                         }
@@ -88,7 +92,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
 
             HexCoordinates[] allNeighbors = slotCoordinates.GetNeighbors();
 
-            foreach (IStack stack in slot.Stacks) {
+            // Create snapshot of stacks to avoid collection modification issues
+            var currentStacks = new List<IStack>(slot.Stacks);
+
+            foreach (IStack stack in currentStacks) {
                 if (stack == null || stack.Cells == null || stack.Cells.Count == 0) {
                     continue;
                 }
@@ -104,7 +111,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services {
                         continue;
                     }
 
-                    foreach (IStack neighborStack in neighborSlot.Stacks) {
+                    // Create snapshot of neighbor stacks
+                    var neighborStacks = new List<IStack>(neighborSlot.Stacks);
+
+                    foreach (IStack neighborStack in neighborStacks) {
                         if (neighborStack == null || neighborStack.Cells == null || neighborStack.Cells.Count == 0) {
                             continue;
                         }
