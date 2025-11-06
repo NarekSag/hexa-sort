@@ -224,6 +224,7 @@ GameObject:
   - component: {fileID: 4745318182357807728}
   - component: {fileID: 8785924190072012656}
   - component: {fileID: 6016828238176717141}
+  - component: {fileID: 6663444816312012537}
   m_Layer: 5
   m_Name: BoosterButton
   m_TagString: Untagged
@@ -268,7 +269,6 @@ MonoBehaviour:
   _iconImage: {fileID: 8333906741301413041}
   _lockOverlay: {fileID: 8765432198765432100}
   _unlockLevelText: {fileID: 1234567891234567890}
-  _iconConfig: {fileID: 0}
 --- !u!222 &4745318182357807728
 CanvasRenderer:
   m_ObjectHideFlags: 0
@@ -351,6 +351,26 @@ MonoBehaviour:
   m_OnClick:
     m_PersistentCalls:
       m_Calls: []
+--- !u!114 &6663444816312012537
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 2539195663563488881}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 306cc8c2b49d7114eaa3623786fc2126, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: UnityEngine.UI::UnityEngine.UI.LayoutElement
+  m_IgnoreLayout: 0
+  m_MinWidth: -1
+  m_MinHeight: -1
+  m_PreferredWidth: 150
+  m_PreferredHeight: 150
+  m_FlexibleWidth: -1
+  m_FlexibleHeight: -1
+  m_LayoutPriority: 1
 --- !u!1 &7317086122622507954
 GameObject:
   m_ObjectHideFlags: 0

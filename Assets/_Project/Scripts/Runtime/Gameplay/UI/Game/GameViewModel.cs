@@ -6,6 +6,7 @@ using _Project.Scripts.Runtime.Gameplay.UI.LevelFailed;
 using _Project.Scripts.Runtime.Gameplay.UI.Boosters;
 using _Project.Scripts.Runtime.Gameplay.Domain.Boosters;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.State;
+using _Project.Scripts.Runtime.Gameplay.Presentation.Stack;
 
 namespace _Project.Scripts.Runtime.Gameplay.UI.Game
 {
@@ -22,14 +23,15 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Game
         public GameViewModel(
             LevelManager levelManager,
             BoosterManager boosterManager,
-            GameplayStateManager stateManager)
+            GameplayStateManager stateManager,
+            HexStackBoard stackBoard)
         {
             BoosterManager = boosterManager;
             LevelProgressionViewModel = new LevelProgressionViewModel(levelManager);
             SettingsViewModel = new SettingsViewModel(levelManager);
             LevelCompleteViewModel = new LevelCompletedViewModel(levelManager);
             LevelFailedViewModel = new LevelFailedViewModel(levelManager);
-            BoosterSelectionViewModel = new BoosterSelectionViewModel(boosterManager, stateManager);
+            BoosterSelectionViewModel = new BoosterSelectionViewModel(boosterManager, stateManager, stackBoard);
             BoosterViewModel = new BoosterViewModel(boosterManager, stateManager);
         }
         

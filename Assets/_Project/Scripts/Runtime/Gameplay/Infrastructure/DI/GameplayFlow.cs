@@ -152,6 +152,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             if (_stackBoard != null)
             {
                 _stackBoard.Initialize(levelData);
+                // Shuffle stacks when level starts (including restarts)
+                _stackBoard.ShuffleStacks();
             }
         }
         
@@ -171,9 +173,6 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             
             // Save progress for next level
             await SaveProgress(levelData);
-            
-            // UI will be shown by GameView listening to OnLevelCompleted
-            // Don't auto-advance - wait for button press in LevelCompleteView
         }
         
         private void CheckForLevelFailure()

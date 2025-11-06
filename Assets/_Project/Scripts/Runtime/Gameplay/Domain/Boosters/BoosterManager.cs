@@ -54,7 +54,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Boosters
                 {
                     hammerBooster.ResetUsage();
                 }
-                // Add other booster types here as needed
+                else if (booster is ShuffleBooster shuffleBooster)
+                {
+                    shuffleBooster.ResetUsage();
+                }
             }
             
             // Clear any active booster
@@ -91,7 +94,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Boosters
             {
                 hammerBooster.MarkAsUsed();
             }
-            // Add other booster types here as needed
+            else if (booster is ShuffleBooster shuffleBooster)
+            {
+                shuffleBooster.MarkAsUsed();
+            }
         }
         
         /// <summary>

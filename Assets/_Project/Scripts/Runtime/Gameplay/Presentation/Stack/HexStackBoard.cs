@@ -10,7 +10,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
     {
         [Header("Spawn Points")]
         [Tooltip("Assign StackSpawnPoint components from child GameObjects, or leave empty to auto-detect.")]
-        [SerializeField] private StackSpawnPoint[] _spawnPoints;
+        [SerializeField]
+        private StackSpawnPoint[] _spawnPoints;
 
         [Inject] private HexStackFactory _stackFactory;
 
@@ -23,7 +24,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
             if (_spawnPoints == null || _spawnPoints.Length == 0)
             {
                 _spawnPoints = GetComponentsInChildren<StackSpawnPoint>();
-                CustomDebug.Log(LogCategory.Gameplay, $"HexStackBoard: Auto-detected {_spawnPoints.Length} spawn points");
+                CustomDebug.Log(LogCategory.Gameplay,
+                    $"HexStackBoard: Auto-detected {_spawnPoints.Length} spawn points");
             }
         }
 
@@ -87,7 +89,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
 
             if (_stackFactory == null)
             {
-                CustomDebug.LogError(LogCategory.Gameplay, "HexStackBoard: StackFactory is NULL! Cannot initialize spawn points.");
+                CustomDebug.LogError(LogCategory.Gameplay,
+                    "HexStackBoard: StackFactory is NULL! Cannot initialize spawn points.");
                 return;
             }
 
@@ -179,6 +182,27 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
                 return;
             }
 
+            foreach (var spawnPoint in _spawnPoints)
+            {
+                if (spawnPoint != null && spawnPoint.IsEmpty)
+                {
+                    spawnPoint.CreateStack();
+                }
+            }
+        }
+
+        public void ShuffleStacks()
+        {
+            if (_spawnPoints == null || _spawnPoints.Length == 0)
+            {
+                CustomDebug.LogWarning(LogCategory.Gameplay, "HexStackBoard: No spawn points available for shuffle!");
+                return;
+            }
+
+            // Clear all existing stacks
+            ClearAllStacks();
+
+            // Spawn new stacks at all empty spawn points
             foreach (var spawnPoint in _spawnPoints)
             {
                 if (spawnPoint != null && spawnPoint.IsEmpty)

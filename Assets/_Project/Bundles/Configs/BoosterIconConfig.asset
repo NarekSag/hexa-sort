@@ -15,3 +15,5 @@ MonoBehaviour:
   _iconMappings:
   - BoosterType: 0
     Icon: {fileID: 21300000, guid: 001f1da371c864c4a843c9d794de2458, type: 3}
+  - BoosterType: 1
+    Icon: {fileID: 21300000, guid: 477f634dd410efe4abf5831f76c212f3, type: 3}
