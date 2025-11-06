@@ -54,6 +54,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             try
             {
                 _gameView.Initialize(_gameViewModel);
+                _gameView.SetupLevelEvents(_levelManager);
                 
                 // Subscribe to level events using reactive observables
                 _levelManager.OnLevelStarted
@@ -91,13 +92,15 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
 
         private void ClearOldLevel()
         {
-            // Unsubscribe from old grid's cleanup service
+            // Unsubscribe from old grid's cleanup service and events
             if (_currentGridController != null)
             {
                 if (_currentGridController.CleanupService != null)
                 {
                     _currentGridController.CleanupService.OnCellsCleared -= OnCellsCleared;
                 }
+                
+                _currentGridController.OnOperationsComplete -= CheckForLevelFailure;
                 
                 // Destroy old grid
                 if (_currentGridController.GridTransform != null)
@@ -118,6 +121,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
                 _currentGridController.CleanupService.OnCellsCleared += OnCellsCleared;
             }
             
+            // Subscribe to grid operations complete to check for failure
+            if (_currentGridController != null)
+            {
+                _currentGridController.OnOperationsComplete += CheckForLevelFailure;
+            }
+            
             // Initialize or update stack board with level data
             if (_stackBoard != null)
             {
@@ -129,19 +138,38 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         {
             // Notify level manager how many cells were cleared
             _levelManager.NotifyCellsCleared(cellCount);
+            
+            // Check for failure condition after cleanup
+            CheckForLevelFailure();
         }
         
         private async void OnLevelCompleted(Core.Models.LevelData levelData)
         {
-            // TODO: Show victory UI
-            
             // Save progress for next level
             await SaveProgress(levelData);
             
-            // Auto-advance to next level (TODO: change to wait for button press)
-            UnityEngine.Object.Destroy(_currentGridController.GridTransform.gameObject);
-            _stackBoard?.ClearAllStacks();
-            _levelManager.LoadNextLevel();
+            // UI will be shown by GameView listening to OnLevelCompleted
+            // Don't auto-advance - wait for button press in LevelCompleteView
+        }
+        
+        private void CheckForLevelFailure()
+        {
+            if (_currentGridController == null || _levelManager == null)
+            {
+                return;
+            }
+            
+            // Don't check if level is already completed or failed
+            if (_levelManager.CurrentLevel.Value == null)
+            {
+                return;
+            }
+            
+            // Check if level has failed: all slots are filled (all cells on grid are not empty)
+            if (_currentGridController.IsLevelFailed())
+            {
+                _levelManager.FailLevel();
+            }
         }
 
         private async UniTask SaveProgress(Core.Models.LevelData levelData)

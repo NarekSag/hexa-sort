@@ -1,3 +1,4 @@
+using System;
 using UnityEngine;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
@@ -15,6 +16,12 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers {
         
         public Transform GridTransform { get; private set; }
         public GridCleanupService CleanupService => _cleanupService;
+        
+        /// <summary>
+        /// Event fired after all sorting and cleanup operations complete for a stack placement.
+        /// This allows external systems to check for level failure conditions.
+        /// </summary>
+        public event Action OnOperationsComplete;
 
         public GridController(
             HexSlotRegistry slotRegistry, 
@@ -78,6 +85,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers {
                     // If no potential merges and we're at depth 0, do cleanup
                     if (depth == 0) {
                         await _cleanupService.CheckAndClearStacksWithTenPlusCells(slotCoordinates);
+                        // Notify that operations are complete
+                        OnOperationsComplete?.Invoke();
                     }
                     return;
                 }
@@ -115,8 +124,28 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers {
                 // Process pure merges and clear stacks with 10+ cells
                 await _cleanupService.ProcessPureMerges(allAffectedSlots);
                 await _cleanupService.CheckAndClearStacksWithTenPlusCells(allAffectedSlots);
+                
+                // Notify that operations are complete (allows external systems to check for failure)
+                OnOperationsComplete?.Invoke();
             }
+        }
+        
+        public bool IsLevelFailed() {
+            if (_slotRegistry == null) {
+                return false;
+            }
+            
+            // Check if all slots are not empty (all cells on grid are filled)
+            foreach (ISlot slot in _slotRegistry.GetAllSlots()) {
+                if (slot == null || slot.IsEmpty()) {
+                    return false; // Found an empty slot, level hasn't failed
+                }
+            }
+            
+            // All slots are filled - level has failed
+            return true;
         }
     }
 }
+
 

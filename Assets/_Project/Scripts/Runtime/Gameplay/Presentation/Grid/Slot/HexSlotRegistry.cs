@@ -19,6 +19,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot {
             return slot;
         }
 
+        public IEnumerable<ISlot> GetAllSlots() {
+            return _slots.Values;
+        }
+
         public void Clear() {
             _slots.Clear();
         }
