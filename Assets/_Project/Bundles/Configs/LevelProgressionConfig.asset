@@ -16,13 +16,13 @@ MonoBehaviour:
   _cellPrefab: {fileID: 93956349096341290, guid: 87e872d616fe75f4a934ec442c9e477e, type: 3}
   _levelTiers:
   - StartLevel: 1
-    GridWidth: 3
-    GridHeight: 3
+    GridWidth: 2
+    GridHeight: 2
     MinColors: 0
     MaxColors: 2
     AvailableColors: 0000000001000000
     MinStackHeight: 2
-    MaxStackHeight: 5
+    MaxStackHeight: 3
   - StartLevel: 2
     GridWidth: 3
     GridHeight: 3
@@ -30,7 +30,23 @@ MonoBehaviour:
     MaxColors: 3
     AvailableColors: 000000000100000002000000
     MinStackHeight: 2
+    MaxStackHeight: 4
+  - StartLevel: 3
+    GridWidth: 4
+    GridHeight: 4
+    MinColors: 0
+    MaxColors: 4
+    AvailableColors: 00000000010000000200000003000000
+    MinStackHeight: 2
+    MaxStackHeight: 5
+  - StartLevel: 5
+    GridWidth: 4
+    GridHeight: 4
+    MinColors: 0
+    MaxColors: 4
+    AvailableColors: 0000000001000000020000000300000004000000
+    MinStackHeight: 2
     MaxStackHeight: 5
   _baseCellsToClear: 0
-  _cellsToClearIncrement: 10
+  _cellsToClearIncrement: 25
   _maxCellsToClear: 500

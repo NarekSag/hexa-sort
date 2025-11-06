@@ -19,3 +19,13 @@ MonoBehaviour:
     _material: {fileID: 2100000, guid: 71625a9b69a6e45189e1dedfb14eca4f, type: 2}
   - _colorType: 2
     _material: {fileID: 2100000, guid: c7959316c68c14eeead82d4b85c7cb17, type: 2}
+  - _colorType: 3
+    _material: {fileID: 2100000, guid: 01c7e38e4d4171444b60a978eef99997, type: 2}
+  - _colorType: 4
+    _material: {fileID: 2100000, guid: 97ca7e3236bfe7d408254c782bd133b7, type: 2}
+  - _colorType: 5
+    _material: {fileID: 2100000, guid: 39c52c23c23434746ace655a181c509e, type: 2}
+  - _colorType: 6
+    _material: {fileID: 2100000, guid: 310e12ca8a86fe84c9bc3d0d513884af, type: 2}
+  - _colorType: 7
+    _material: {fileID: 2100000, guid: 7e2635a535b8c6346ab7c06649f12d8b, type: 2}
