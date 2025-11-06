@@ -60,7 +60,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             _inputInstaller.Install(builder);
             _configInstaller.Install(builder);
             _uiInstaller.Install(builder);
-            builder.Register<BoosterInstaller>(Lifetime.Singleton);
+            
+            // Install booster-related services directly
+            var boosterInstaller = new BoosterInstaller();
+            boosterInstaller.Install(builder);
         }
     }
 }
