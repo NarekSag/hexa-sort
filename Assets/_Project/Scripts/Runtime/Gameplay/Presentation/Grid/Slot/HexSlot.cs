@@ -98,9 +98,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot {
             // Clean up null or empty stacks before calculating position
             _hexStacks.RemoveAll(stack => stack == null || stack.Cells.Count == 0);
 
-            // Calculate position for the new stack (on top of existing stacks)
-            int newStackIndex = _hexStacks.Count;
-            targetPosition = GetPlacementPosition(newStackIndex);
+            // Only allow placing stacks on empty slots
+            if (!IsEmpty()) {
+                return false;
+            }
+
+            // Calculate position for the new stack
+            targetPosition = GetPlacementPosition(0);
             
             return true;
         }
