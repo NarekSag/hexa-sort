@@ -206,7 +206,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 0, y: 462.49997}
+  m_AnchoredPosition: {x: 0, y: 462.5}
   m_SizeDelta: {x: 100, y: -1375}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &34495781
@@ -1509,6 +1509,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: Assembly-CSharp::_Project.Scripts.Runtime.Gameplay.UI.Boosters.BoosterSelectionView
   _boosterContainer: {fileID: 681275728}
   _boosterButtonPrefab: {fileID: 2539195663563488881, guid: 7349729f8e6ea9f4093af0801bac0aaa, type: 3}
+  _iconConfig: {fileID: 11400000, guid: 359de8337312243e3a8de5e40b5951a2, type: 2}
 --- !u!1 &424065059
 GameObject:
   m_ObjectHideFlags: 0
@@ -4601,7 +4602,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: 5, y: -184.99992}
+  m_AnchoredPosition: {x: 5, y: -184.99994}
   m_SizeDelta: {x: -60, y: 80}
   m_Pivot: {x: 0.5, y: 1}
 --- !u!114 &1706121166

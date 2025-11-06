@@ -6,6 +6,7 @@ using UniRx;
 using _Project.Scripts.Runtime.Gameplay.UI;
 using _Project.Scripts.Runtime.Gameplay.Domain.Boosters;
 using _Project.Scripts.Runtime.Gameplay.Domain.Level;
+using _Project.Scripts.Runtime.Gameplay.Config;
 
 namespace _Project.Scripts.Runtime.Gameplay.UI.Boosters
 {
@@ -13,6 +14,8 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Boosters
     {
         [SerializeField] private Transform _boosterContainer;
         [SerializeField] private GameObject _boosterButtonPrefab;
+
+        [SerializeField] private BoosterIconConfig _iconConfig;
         
         private BoosterSelectionViewModel _viewModel;
         private BoosterManager _boosterManager;
@@ -74,19 +77,11 @@ namespace _Project.Scripts.Runtime.Gameplay.UI.Boosters
                 var boosterButton = buttonObj.GetComponent<BoosterButton>();
                 if (boosterButton == null) continue;
                 
-                // Setup click handler
-                boosterButton.Button?.onClick.AddListener(() => _viewModel.SelectBooster(booster));
-                
-                // Apply lock state
-                var isUnlocked = _boosterManager.IsBoosterUnlocked(booster.Type);
-                if (isUnlocked)
-                {
-                    boosterButton.SetUnlocked();
-                }
-                else
-                {
-                    boosterButton.SetLocked(true, _boosterManager.GetUnlockLevel(booster.Type));
-                }
+                bool isUnlocked = _boosterManager.IsBoosterUnlocked(booster.Type);
+                int unlockLevel = _boosterManager.GetUnlockLevel(booster.Type);
+
+                boosterButton.Initialize(booster.Type, isUnlocked, unlockLevel, _iconConfig);
+                boosterButton.Button.onClick.AddListener(() => _viewModel.SelectBooster(booster));
             }
         }
         
