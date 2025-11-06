@@ -1,6 +1,7 @@
 using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
+using _Project.Scripts.Runtime.Gameplay.Presentation.Cell;
 
 namespace _Project.Scripts.Runtime.Gameplay.Config {
     [CreateAssetMenu(fileName = "LevelProgressionConfig", menuName = "Hexa Sort/Level Progression Config")]
@@ -8,6 +9,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Config {
         [Header("Prefabs")]
         [Tooltip("Prefab used for all hex slots in the grid")]
         [SerializeField] private HexSlot _slotPrefab;
+        
+        [Tooltip("Prefab used for all hex cells in stacks")]
+        [SerializeField] private HexCell _cellPrefab;
         
         [Header("Level Ranges")]
         [Tooltip("Define progression tiers - each tier applies to a range of levels")]
@@ -21,6 +25,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Config {
         
         public LevelTier[] LevelTiers => _levelTiers;
         public HexSlot SlotPrefab => _slotPrefab;
+        public HexCell CellPrefab => _cellPrefab;
         
         public LevelData GetLevelData(int levelNumber) {
             LevelTier tier = GetTierForLevel(levelNumber);
@@ -63,7 +68,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Config {
         }
         
         public bool IsValid() {
-            return _slotPrefab != null && _levelTiers != null && _levelTiers.Length > 0;
+            return _slotPrefab != null && _cellPrefab != null && _levelTiers != null && _levelTiers.Length > 0;
         }
     }
     

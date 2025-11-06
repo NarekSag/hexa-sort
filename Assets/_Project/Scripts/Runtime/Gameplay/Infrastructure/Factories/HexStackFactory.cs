@@ -8,7 +8,7 @@ using VContainer;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
     public class HexStackFactory {
-        [Inject] private readonly HexStackConfig _config;
+        [Inject] private readonly LevelProgressionConfig _config;
         
         public IStack CreateRandomStack(Transform parent = null, Vector3 position = default, LevelData levelData = null) {
             GameObject stackObject = new GameObject("HexStack");
@@ -20,7 +20,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories {
             // Use level data if provided, otherwise use defaults
             int minHeight = levelData?.MinStackHeight ?? 2;
             int maxHeight = levelData?.MaxStackHeight ?? 6;
-            ColorType[] availableColors = levelData?.AvailableColors ?? _config.AvailableColors;
+            ColorType[] availableColors = levelData?.AvailableColors ?? new[] { ColorType.Red, ColorType.Blue };
             
             // Ensure minimum height is at least 1 to prevent empty stacks
             minHeight = Mathf.Max(1, minHeight);
