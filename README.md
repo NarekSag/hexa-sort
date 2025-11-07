@@ -94,7 +94,7 @@ Assets/_Project/Scripts/
 The project follows **Clean Architecture** principles with clear separation of concerns:
 
 1. **Core Layer**: Pure C# models, interfaces, and enums (no Unity dependencies)
-2. **Domain Layer**: Business logic and game rules (minimal Unity dependencies)
+2. **Domain Layer**: Business logic and game rules (no Unity dependencies)
 3. **Infrastructure Layer**: External concerns (DI, input, state management)
 4. **Presentation Layer**: Unity-specific components (MonoBehaviours, visual representation)
    - **Gameplay Presentation**: Game world objects (Cell, Grid, Stack) - 3D/2D game entities
