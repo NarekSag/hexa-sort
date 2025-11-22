@@ -46,15 +46,37 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling
                 Object.DontDestroyOnLoad(containerObject);
             }
 
-            ICell cell;
+            ICell cell = null;
 
-            if (_availableCells.Count > 0)
+            // Try to get a valid cell from the pool, skipping destroyed ones
+            while (_availableCells.Count > 0)
             {
-                cell = _availableCells.Dequeue();
+                ICell candidate = _availableCells.Dequeue();
+                // Unity's == operator returns true for destroyed objects
+                if (candidate == null)
+                {
+                    continue;
+                }
+                
+                try
+                {
+                    // Try to access Transform to check if object is destroyed
+                    if (candidate.Transform != null && candidate.Transform.gameObject != null)
+                    {
+                        cell = candidate;
+                        break;
+                    }
+                }
+                catch (MissingReferenceException)
+                {
+                    // Object was destroyed, skip it
+                    continue;
+                }
             }
-            else
+
+            // If no valid cell found, create a new one
+            if (cell == null)
             {
-                // Pool is empty, create a new cell
                 cell = Object.Instantiate(_cellPrefab, _poolContainer);
             }
 
@@ -71,6 +93,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling
                 return;
             }
 
+            // Check if the GameObject was destroyed (Unity's destroyed check)
+            if (cell.Transform.gameObject == null)
+            {
+                // Cell was destroyed, just remove from active set
+                _activeCells.Remove(cell);
+                return;
+            }
+
             if (!_activeCells.Contains(cell))
             {
                 // Cell is not from this pool or already returned
@@ -81,7 +111,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling
 
             // Reset cell state
             cell.Transform.gameObject.SetActive(false);
-            cell.Transform.SetParent(_poolContainer);
+            if (_poolContainer != null)
+            {
+                cell.Transform.SetParent(_poolContainer);
+            }
             cell.Transform.localPosition = Vector3.zero;
             cell.Transform.localRotation = Quaternion.identity;
             cell.Transform.localScale = Vector3.one * 0.5f;

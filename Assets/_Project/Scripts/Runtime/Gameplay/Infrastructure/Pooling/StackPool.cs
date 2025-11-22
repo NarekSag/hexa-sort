@@ -39,15 +39,37 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling
                 Object.DontDestroyOnLoad(containerObject);
             }
 
-            IStack stack;
+            IStack stack = null;
 
-            if (_availableStacks.Count > 0)
+            // Try to get a valid stack from the pool, skipping destroyed ones
+            while (_availableStacks.Count > 0)
             {
-                stack = _availableStacks.Dequeue();
+                IStack candidate = _availableStacks.Dequeue();
+                // Unity's == operator returns true for destroyed objects
+                if (candidate == null)
+                {
+                    continue;
+                }
+                
+                try
+                {
+                    // Try to access Transform to check if object is destroyed
+                    if (candidate.Transform != null && candidate.Transform.gameObject != null)
+                    {
+                        stack = candidate;
+                        break;
+                    }
+                }
+                catch (MissingReferenceException)
+                {
+                    // Object was destroyed, skip it
+                    continue;
+                }
             }
-            else
+
+            // If no valid stack found, create a new one
+            if (stack == null)
             {
-                // Pool is empty, create a new stack
                 GameObject stackObject = new GameObject("HexStack");
                 stackObject.transform.SetParent(_poolContainer);
                 stack = stackObject.AddComponent<HexStack>();
