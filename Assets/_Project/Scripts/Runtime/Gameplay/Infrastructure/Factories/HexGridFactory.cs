@@ -5,11 +5,21 @@ using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
 using _Project.Scripts.Runtime.Gameplay.Domain.Grid.Models;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories
 {
     public class HexGridFactory
     {
+        private readonly CellPool _cellPool;
+        private readonly StackPool _stackPool;
+
+        public HexGridFactory(CellPool cellPool, StackPool stackPool)
+        {
+            _cellPool = cellPool;
+            _stackPool = stackPool;
+        }
+
         public GridController Create(HexSlot slotPrefab, LevelData levelData, Transform parent = null)
         {
             if (slotPrefab == null)
@@ -48,13 +58,15 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories
             // Create grid services
             GridNeighborService neighborService = new GridNeighborService(slotRegistry, sortingService);
             GridRecursionService recursionService = new GridRecursionService();
-            GridCleanupService cleanupService = new GridCleanupService(slotRegistry, sortingService);
+            GridCleanupService cleanupService = new GridCleanupService(slotRegistry, sortingService, _cellPool, _stackPool);
 
             GridController gridController = new GridController(
                 slotRegistry,
                 neighborService,
                 recursionService,
-                cleanupService);
+                cleanupService,
+                _cellPool,
+                _stackPool);
 
             // Set the grid transform reference
             gridController.SetGridTransform(gridObject.transform);

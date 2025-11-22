@@ -2,6 +2,7 @@ using UnityEngine;
 using VContainer;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling;
 using _Project.Scripts.Runtime.Utilities.Logging;
 
 namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
@@ -14,6 +15,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
         private StackSpawnPoint[] _spawnPoints;
 
         [Inject] private HexStackFactory _stackFactory;
+        [Inject] private StackPool _stackPool;
 
         private LevelData _currentLevelData;
         private bool _isInitialized = false;
@@ -100,7 +102,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
             {
                 if (_spawnPoints[i] != null)
                 {
-                    _spawnPoints[i].Initialize(_stackFactory, _currentLevelData);
+                    _spawnPoints[i].Initialize(_stackFactory, _stackPool, _currentLevelData);
                     initializedCount++;
                 }
                 else

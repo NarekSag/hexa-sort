@@ -3,6 +3,7 @@ using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling;
 using _Project.Scripts.Runtime.Utilities.Logging;
 
 namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
@@ -10,6 +11,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
     public class StackSpawnPoint : MonoBehaviour
     {
         private HexStackFactory _stackFactory;
+        private StackPool _stackPool;
         private IStack _currentStack;
         private LevelData _currentLevelData;
 
@@ -18,9 +20,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
         public bool HasStack => _currentStack != null;
         public bool IsEmpty => _currentStack == null;
 
-        public void Initialize(HexStackFactory stackFactory, LevelData levelData = null)
+        public void Initialize(HexStackFactory stackFactory, StackPool stackPool, LevelData levelData = null)
         {
             _stackFactory = stackFactory;
+            _stackPool = stackPool;
             _currentLevelData = levelData;
 
             CreateStack();
@@ -66,12 +69,18 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Stack
             if (_currentStack != null)
             {
                 // Store reference before unsubscribing (which sets _currentStack to null)
-                var stackToDestroy = _currentStack;
+                var stackToReturn = _currentStack;
                 UnsubscribeFromStack();
 
-                if (stackToDestroy != null && stackToDestroy.Transform.gameObject != null)
+                // Return stack to pool instead of destroying
+                if (stackToReturn != null && _stackPool != null)
                 {
-                    Destroy(stackToDestroy.Transform.gameObject);
+                    _stackPool.Return(stackToReturn);
+                }
+                else if (stackToReturn != null && stackToReturn.Transform.gameObject != null)
+                {
+                    // Fallback to destroy if pool is not available
+                    Destroy(stackToReturn.Transform.gameObject);
                 }
             }
         }

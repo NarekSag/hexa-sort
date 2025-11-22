@@ -3,21 +3,26 @@ using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Stack;
 using _Project.Scripts.Runtime.Gameplay.Config;
-using VContainer;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories
 {
     public class HexStackFactory
     {
-        [Inject] private readonly LevelProgressionConfig _config;
+        private readonly CellPool _cellPool;
+        private readonly StackPool _stackPool;
+
+        public HexStackFactory(CellPool cellPool, StackPool stackPool)
+        {
+            _cellPool = cellPool;
+            _stackPool = stackPool;
+        }
 
         public IStack CreateRandomStack(Transform parent = null, Vector3 position = default, LevelData levelData = null)
         {
-            GameObject stackObject = new GameObject("HexStack");
-            stackObject.transform.SetParent(parent);
-            stackObject.transform.position = position;
-
-            IStack stack = stackObject.AddComponent<HexStack>();
+            IStack stack = _stackPool.Get();
+            stack.Transform.SetParent(parent);
+            stack.Transform.position = position;
 
             // Use level data if provided, otherwise use defaults
             int minHeight = levelData?.MinStackHeight ?? 2;
@@ -32,7 +37,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories
 
             for (int i = 0; i < cellCount; i++)
             {
-                ICell cell = CreateRandomCell(stackObject.transform, i, availableColors);
+                ICell cell = CreateRandomCell(stack.Transform, i, availableColors);
                 stack.Cells.Add(cell);
             }
 
@@ -43,13 +48,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.Factories
 
         private ICell CreateRandomCell(Transform parent, int index, ColorType[] availableColors)
         {
-            if (_config.CellPrefab == null)
-            {
-                Debug.LogError("Cell prefab is not assigned!");
-                return null;
-            }
-
-            ICell cell = Object.Instantiate(_config.CellPrefab, parent);
+            ICell cell = _cellPool.Get();
+            cell.Transform.SetParent(parent);
 
             ColorType randomColor = availableColors[Random.Range(0, availableColors.Length)];
 

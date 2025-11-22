@@ -6,6 +6,7 @@ using _Project.Scripts.Runtime.Gameplay.Domain.Level;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.Input;
 using UnityEngine;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Stack;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
 {
@@ -22,6 +23,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             {
                 RegisterInstallers(builder);
                 RegisterComponents(builder);
+                RegisterPools(builder);
                 RegisterFactories(builder);
                 RegisterManagers(builder);
                 RegisterInputServices(builder);
@@ -32,6 +34,13 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             {
                 CustomDebug.LogError(LogCategory.Gameplay, $"GameplayScope Configuration Failed: {ex.Message}");
             }
+        }
+
+        private void RegisterPools(IContainerBuilder builder)
+        {
+            // Register pools as scoped - they will be cleared when scope is disposed
+            builder.Register<CellPool>(Lifetime.Scoped);
+            builder.Register<StackPool>(Lifetime.Scoped);
         }
 
         private void RegisterFactories(IContainerBuilder builder)

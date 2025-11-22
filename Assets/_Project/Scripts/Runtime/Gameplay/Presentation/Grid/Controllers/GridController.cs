@@ -6,6 +6,7 @@ using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling;
 
 namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers
 {
@@ -15,6 +16,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers
         private readonly GridNeighborService _neighborService;
         private readonly GridRecursionService _recursionService;
         private readonly GridCleanupService _cleanupService;
+        private readonly CellPool _cellPool;
+        private readonly StackPool _stackPool;
 
         // Queue system to prevent concurrent operations
         private readonly Queue<HexCoordinates> _operationQueue = new Queue<HexCoordinates>();
@@ -29,12 +32,16 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers
             HexSlotRegistry slotRegistry,
             GridNeighborService neighborService,
             GridRecursionService recursionService,
-            GridCleanupService cleanupService)
+            GridCleanupService cleanupService,
+            CellPool cellPool,
+            StackPool stackPool)
         {
             _slotRegistry = slotRegistry;
             _neighborService = neighborService;
             _recursionService = recursionService;
             _cleanupService = cleanupService;
+            _cellPool = cellPool;
+            _stackPool = stackPool;
         }
 
         public void SetGridTransform(Transform gridTransform)
@@ -222,7 +229,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers
             // Create a copy of stacks list to avoid modification during iteration
             var stacksToDestroy = new System.Collections.Generic.List<IStack>(slot.Stacks);
 
-            // Destroy all cells in stacks, then destroy the stack GameObjects
+            // Return all cells in stacks to pool, then return the stack GameObjects to pool
             foreach (IStack stackToDestroy in stacksToDestroy)
             {
                 if (stackToDestroy == null)
@@ -235,22 +242,22 @@ namespace _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Controllers
                 {
                     totalCellsCleared += stackToDestroy.Cells.Count;
 
-                    // Destroy all cells in the stack
+                    // Return all cells in the stack to pool
                     foreach (var cell in stackToDestroy.Cells)
                     {
-                        if (cell != null && cell.Transform.gameObject != null)
+                        if (cell != null)
                         {
-                            UnityEngine.Object.Destroy(cell.Transform.gameObject);
+                            _cellPool?.Return(cell);
                         }
                     }
 
                     stackToDestroy.Cells.Clear();
                 }
 
-                // Destroy the stack GameObject
-                if (stackToDestroy.Transform.gameObject != null)
+                // Return the stack GameObject to pool
+                if (stackToDestroy != null)
                 {
-                    UnityEngine.Object.Destroy(stackToDestroy.Transform.gameObject);
+                    _stackPool?.Return(stackToDestroy);
                 }
             }
 

@@ -14,6 +14,7 @@ using _Project.Scripts.Runtime.Gameplay.UI.Game;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.State;
 using _Project.Scripts.Runtime.Gameplay.Domain.Boosters;
 using _Project.Scripts.Runtime.Gameplay.Infrastructure.Input;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling;
 using Cysharp.Threading.Tasks;
 
 namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
@@ -30,6 +31,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
         private readonly GameplayStateManager _stateManager;
         private readonly BoosterManager _boosterManager;
         private readonly BoosterInputService _boosterInputService;
+        private readonly CellPool _cellPool;
+        private readonly StackPool _stackPool;
 
         private GridController _currentGridController;
         private readonly HexStackBoard _stackBoard;
@@ -46,7 +49,9 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             GameView gameView,
             GameplayStateManager stateManager,
             BoosterManager boosterManager,
-            BoosterInputService boosterInputService)
+            BoosterInputService boosterInputService,
+            CellPool cellPool,
+            StackPool stackPool)
         {
             _hexGridFactory = hexGridFactory;
             _slotPrefab = slotPrefab;
@@ -59,6 +64,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
             _stateManager = stateManager;
             _boosterManager = boosterManager;
             _boosterInputService = boosterInputService;
+            _cellPool = cellPool;
+            _stackPool = stackPool;
         }
 
         public async void Start()
@@ -126,6 +133,10 @@ namespace _Project.Scripts.Runtime.Gameplay.Infrastructure.DI
                     GameObject.Destroy(_currentGridController.GridTransform.gameObject);
                 }
             }
+
+            // Clear pools to return all active objects (pools will be recreated on next level)
+            _cellPool?.Clear();
+            _stackPool?.Clear();
         }
 
         private void CreateNewLevel(Core.Models.LevelData levelData)

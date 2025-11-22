@@ -6,6 +6,7 @@ using _Project.Scripts.Runtime.Gameplay.Core.Models;
 using _Project.Scripts.Runtime.Gameplay.Presentation.Grid.Slot;
 using _Project.Scripts.Runtime.Gameplay.Domain.Stack.Services;
 using _Project.Scripts.Runtime.Gameplay.Core.Interfaces;
+using _Project.Scripts.Runtime.Gameplay.Infrastructure.Pooling;
 
 namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services
 {
@@ -13,6 +14,8 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services
     {
         private readonly HexSlotRegistry _slotRegistry;
         private readonly StackSortingService _sortingService;
+        private readonly CellPool _cellPool;
+        private readonly StackPool _stackPool;
 
         public event Action<int> OnCellsCleared;
 
@@ -26,10 +29,14 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services
 
         public GridCleanupService(
             HexSlotRegistry slotRegistry,
-            StackSortingService sortingService)
+            StackSortingService sortingService,
+            CellPool cellPool,
+            StackPool stackPool)
         {
             _slotRegistry = slotRegistry;
             _sortingService = sortingService;
+            _cellPool = cellPool;
+            _stackPool = stackPool;
         }
 
         public async UniTask ProcessPureMerges(HashSet<HexCoordinates> affectedSlots)
@@ -156,7 +163,7 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services
             // Count total cells before destroying
             int totalCellsCleared = 0;
 
-            // Destroy all cells in stacks with 10+ cells, then destroy the stack GameObjects
+            // Return all cells in stacks with 10+ cells to pool, then return the stack GameObjects to pool
             foreach (IStack stackToClear in stacksToClear)
             {
                 // Count cells in this stack
@@ -164,22 +171,22 @@ namespace _Project.Scripts.Runtime.Gameplay.Domain.Grid.Services
                 {
                     totalCellsCleared += stackToClear.Cells.Count;
 
-                    // Destroy all cells in the stack
+                    // Return all cells in the stack to pool
                     foreach (ICell cell in stackToClear.Cells)
                     {
-                        if (cell != null && cell.Transform.gameObject != null)
+                        if (cell != null)
                         {
-                            UnityEngine.Object.Destroy(cell.Transform.gameObject);
+                            _cellPool?.Return(cell);
                         }
                     }
 
                     stackToClear.Cells.Clear();
                 }
 
-                // Destroy the stack GameObject
-                if (stackToClear.Transform.gameObject != null)
+                // Return the stack GameObject to pool
+                if (stackToClear != null)
                 {
-                    UnityEngine.Object.Destroy(stackToClear.Transform.gameObject);
+                    _stackPool?.Return(stackToClear);
                 }
             }
 
